@@ -1,0 +1,91 @@
+{
+  "expo": {
+    "name": "Mesai+",
+    "slug": "abacusai-mobile-apps",
+    "version": "9.1.0",
+    "orientation": "portrait",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "newArchEnabled": true,
+    "splash": {
+      "image": "./assets/splash-icon.png",
+      "resizeMode": "contain",
+      "backgroundColor": "#0A0A0A"
+    },
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.abacusai.mesaitracker.t1777149488",
+      "buildNumber": "23",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "adaptiveIcon": {
+        "foregroundImage": "./assets/adaptive-icon.png",
+        "backgroundColor": "#0A0A0A"
+      },
+      "edgeToEdgeEnabled": true,
+      "predictiveBackGestureEnabled": false,
+      "package": "com.abacusai.mesaitracker.t1777149488",
+      "versionCode": 23,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "data": [
+            {
+              "scheme": "abacusai1777149488",
+              "host": "*"
+            }
+          ],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
+        }
+      ]
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "@react-native-community/datetimepicker",
+      "expo-mail-composer",
+      "@react-native-google-signin/google-signin",
+      "expo-web-browser",
+      "react-native-iap",
+      "expo-font",
+      [
+        "react-native-android-widget",
+        {
+          "widgets": [
+            {
+              "name": "Mesai",
+              "label": "Mesai+ Aylik Ozet",
+              "description": "Bu ay kazanc ve kalan gun ozeti",
+              "minWidth": "180dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 3,
+              "targetCellHeight": 2,
+              "previewImage": "./assets/icon.png",
+              "resizeMode": "horizontal|vertical",
+              "updatePeriodMinutes": 30,
+              "widgetFeatures": "reconfigurable"
+            }
+          ]
+        }
+      ]
+    ],
+    "scheme": "abacusai1777149488",
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "a52132e3-7b24-4c1b-9315-46625e580b8a"
+      }
+    },
+    "owner": "abacus.ai"
+  }
+}
