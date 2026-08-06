@@ -1,1 +1,11 @@
-node_modules
+node_modules/
+.expo/
+dist/
+.idea/
+.yarn/
+.env
+.env.*
+*.log
+android/.gradle/
+android/app/build/
+ios/build/

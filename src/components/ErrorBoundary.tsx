@@ -13,8 +13,12 @@ export class ErrorBoundary extends React.Component<{ children: React.ReactNode }
       return (
         <ScrollView style={styles.wrap} contentContainerStyle={styles.content}>
           <Text style={styles.title}>Bir hata oluştu</Text>
-          <Text style={styles.msg}>{this.state.error?.message ?? 'Bilinmeyen hata'}</Text>
-          {!!this.state.error?.stack && <Text style={styles.stack}>{this.state.error.stack}</Text>}
+          <Text style={styles.msg}>
+            {__DEV__
+              ? (this.state.error?.message ?? 'Bilinmeyen hata')
+              : 'Beklenmedik bir sorun oluştu. Lütfen uygulamayı yeniden başlatıp tekrar deneyin. Sorun devam ederse bizimle iletişime geçin.'}
+          </Text>
+          {__DEV__ && !!this.state.error?.stack && <Text style={styles.stack}>{this.state.error.stack}</Text>}
         </ScrollView>
       );
     }
