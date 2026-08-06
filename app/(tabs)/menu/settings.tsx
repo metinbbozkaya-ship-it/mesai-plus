@@ -280,9 +280,9 @@ export default function ProfileScreen() {
                     <ActivityIndicator size="small" color="#fff" />
                   ) : (
                     <>
-                      <Ionicons name="logo-google" size={20} color="#fff" />
+                      <Ionicons name="mail" size={20} color="#fff" />
                       <Text style={styles.buttonText}>
-                        {language === 'tr' ? 'Google ile Bağlan' : 'Sign In with Google'}
+                        {language === 'tr' ? 'E-posta ile Bağlan' : 'Sign In with Email'}
                       </Text>
                     </>
                   )}

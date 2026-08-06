@@ -1,3 +1,5 @@
+// TODO: Gerçek Google OAuth entegrasyonu tamamlandığında kullanılacaktır.
+// Bu dosya şu anda hiçbir yerden import edilmiyor / çağrılmıyor (kullanılmayan kod).
 import * as AuthSession from 'expo-auth-session';
 import * as WebBrowser from 'expo-web-browser';
 import AsyncStorage from '@react-native-async-storage/async-storage';
