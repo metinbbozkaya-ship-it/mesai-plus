@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
-import AsyncStorage from '@react-native-async-storage/async-storage';
 import * as LocalAuthentication from 'expo-local-authentication';
+import * as secureStorage from './secureStorage';
 
 export const BIOMETRIC_KEY = 'mesai.biometric.enabled.v1';
 
@@ -18,7 +18,7 @@ export async function isBiometricAvailable(): Promise<boolean> {
 
 export async function isBiometricEnabled(): Promise<boolean> {
   try {
-    const v = await AsyncStorage.getItem(BIOMETRIC_KEY);
+    const v = await secureStorage.getItem(BIOMETRIC_KEY);
     return v === 'true';
   } catch {
     return false;
@@ -27,7 +27,7 @@ export async function isBiometricEnabled(): Promise<boolean> {
 
 export async function setBiometricEnabled(enabled: boolean): Promise<void> {
   try {
-    await AsyncStorage.setItem(BIOMETRIC_KEY, enabled ? 'true' : 'false');
+    await secureStorage.setItem(BIOMETRIC_KEY, enabled ? 'true' : 'false');
   } catch {}
 }
 
