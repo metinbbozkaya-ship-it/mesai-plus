@@ -1,6 +1,6 @@
 import React, { createContext, useCallback, useContext, useEffect, useRef, useState } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { Platform, Alert } from 'react-native';
+import { Platform } from 'react-native';
 import Constants from 'expo-constants';
 
 // ─── Pro Membership Context (react-native-iap v15 powered) ───
@@ -42,13 +42,24 @@ interface ProductInfo {
   description: string;
 }
 
+// 'dispatched' only means the purchase request was successfully handed off to
+// the store — requestPurchase is event-based, not promise-based. The real
+// outcome arrives later via purchaseUpdatedListener/purchaseErrorListener.
+export type PurchaseResult = 'dispatched' | 'cancelled' | 'unsupported' | 'error';
+export type RestoreResult = 'restored' | 'not_found' | 'error';
+
 interface ProContextValue {
   isPro: boolean;
   ready: boolean;
   product: ProductInfo | null;
   purchasing: boolean;
-  purchasePro: () => Promise<boolean>;
-  restorePurchases: () => Promise<boolean>;
+  purchasePro: () => Promise<PurchaseResult>;
+  restorePurchases: () => Promise<RestoreResult>;
+  // Ticks increment whenever a real (listener-confirmed) purchase success or
+  // error occurs, so UI can react without trusting purchasePro()'s immediate
+  // return value as the final outcome.
+  purchaseSuccessTick: number;
+  purchaseErrorTick: number;
 }
 
 const ProContext = createContext<ProContextValue | null>(null);
@@ -58,6 +69,8 @@ export function ProProvider({ children }: { children: React.ReactNode }) {
   const [ready, setReady] = useState(false);
   const [product, setProduct] = useState<ProductInfo | null>(null);
   const [purchasing, setPurchasing] = useState(false);
+  const [purchaseSuccessTick, setPurchaseSuccessTick] = useState(0);
+  const [purchaseErrorTick, setPurchaseErrorTick] = useState(0);
   const purchaseUpdateSub = useRef<any>(null);
   const purchaseErrorSub = useRef<any>(null);
 
@@ -139,6 +152,7 @@ export function ProProvider({ children }: { children: React.ReactNode }) {
           try {
             await Iap.finishTransaction({ purchase, isConsumable: false });
             await persistPro(true);
+            setPurchaseSuccessTick((n) => n + 1);
           } catch (e) {
             console.warn('[IAP] finishTransaction failed', e);
           } finally {
@@ -150,6 +164,7 @@ export function ProProvider({ children }: { children: React.ReactNode }) {
           setPurchasing(false);
           if (err?.code && err.code !== 'E_USER_CANCELLED') {
             console.warn('[IAP] purchase error', err);
+            setPurchaseErrorTick((n) => n + 1);
           }
         });
       } catch (e) {
@@ -170,14 +185,30 @@ export function ProProvider({ children }: { children: React.ReactNode }) {
     };
   }, [persistPro]);
 
+  // Safety net: if a purchase is dispatched but neither purchaseUpdatedListener
+  // nor purchaseErrorListener ever fires (e.g. app backgrounded mid-flow), don't
+  // leave the UI stuck in a loading state forever. Only resets the loading flag —
+  // never touches isPro/persistPro.
+  useEffect(() => {
+    if (!purchasing) return;
+    const timer = setTimeout(() => {
+      console.warn('[IAP] purchasing safety timeout reached, resetting loading state');
+      setPurchasing(false);
+    }, 60000);
+    return () => clearTimeout(timer);
+  }, [purchasing]);
+
   // ─── Trigger a purchase (v15 API) ───
-  const purchasePro = useCallback(async (): Promise<boolean> => {
+  // Returns only the outcome of *dispatching* the request. The real result
+  // (success/failure) arrives asynchronously via purchaseUpdatedListener /
+  // purchaseErrorListener above, which drive purchaseSuccessTick/purchaseErrorTick.
+  const purchasePro = useCallback(async (): Promise<PurchaseResult> => {
     const Iap = loadIap();
 
     // Web / Expo Go fallback — no native store to purchase from, don't grant Pro.
     if (!Iap) {
       if (__DEV__) console.warn('[IAP] purchasePro: native IAP not available on this platform/runtime');
-      return false;
+      return 'unsupported';
     }
 
     setPurchasing(true);
@@ -196,25 +227,25 @@ export function ProProvider({ children }: { children: React.ReactNode }) {
         sku: PRO_SKU,
         skus: [PRO_SKU],
       });
-      return true;
+      return 'dispatched';
     } catch (err: any) {
       setPurchasing(false);
       const code = err?.code;
-      if (code === 'E_USER_CANCELLED') return false;
-      const msg = err?.message || 'Could not complete the purchase. Please try again.';
-      Alert.alert('Purchase Error', msg);
-      return false;
+      if (code === 'E_USER_CANCELLED') return 'cancelled';
+      console.warn('[IAP] requestPurchase failed', err);
+      setPurchaseErrorTick((n) => n + 1);
+      return 'error';
     }
-  }, [persistPro]);
+  }, []);
 
-  const restorePurchases = useCallback(async (): Promise<boolean> => {
+  const restorePurchases = useCallback(async (): Promise<RestoreResult> => {
     const Iap = loadIap();
 
     if (!Iap) {
       const v = await AsyncStorage.getItem(PRO_KEY);
       const has = v === 'true';
       setIsPro(has);
-      return has;
+      return has ? 'restored' : 'not_found';
     }
 
     try {
@@ -227,20 +258,29 @@ export function ProProvider({ children }: { children: React.ReactNode }) {
         if (Platform.OS === 'android' && !owned.isAcknowledgedAndroid) {
           try { await Iap.finishTransaction({ purchase: owned, isConsumable: false }); } catch {}
         }
-        return true;
+        return 'restored';
       }
       // Store confirmed no active PRO_SKU purchase — stale local cache shouldn't be trusted.
       await persistPro(false);
-      return false;
+      return 'not_found';
     } catch (e) {
       console.warn('[IAP] restore failed', e);
-      return false;
+      return 'error';
     }
   }, [persistPro]);
 
   return (
     <ProContext.Provider
-      value={{ isPro, ready, product, purchasing, purchasePro, restorePurchases }}
+      value={{
+        isPro,
+        ready,
+        product,
+        purchasing,
+        purchasePro,
+        restorePurchases,
+        purchaseSuccessTick,
+        purchaseErrorTick,
+      }}
     >
       {children}
     </ProContext.Provider>

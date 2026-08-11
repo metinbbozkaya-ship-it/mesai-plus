@@ -1,4 +1,4 @@
-import React, { useLayoutEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { View, Text, StyleSheet, Pressable, ScrollView, Alert, Platform, ActivityIndicator } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRouter } from 'expo-router';
@@ -14,7 +14,16 @@ export default function UpgradeScreen() {
   const navigation = useNavigation<any>();
   const { language, theme } = useApp();
   const toast = useToast();
-  const { isPro, purchasePro, restorePurchases, product, purchasing } = usePro();
+  const {
+    isPro,
+    ready,
+    purchasePro,
+    restorePurchases,
+    product,
+    purchasing,
+    purchaseSuccessTick,
+    purchaseErrorTick,
+  } = usePro();
   const colors = getColors(theme);
   const styles = getStyles(colors);
   const [loading, setLoading] = useState(false);
@@ -24,6 +33,29 @@ export default function UpgradeScreen() {
   useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });
   }, [navigation]);
+
+  // Real purchase success is only confirmed asynchronously (purchaseUpdatedListener
+  // in ProContext, after finishTransaction + persistPro succeed) — react to that
+  // signal instead of purchasePro()'s immediate return value.
+  const prevSuccessTick = useRef(purchaseSuccessTick);
+  useEffect(() => {
+    if (purchaseSuccessTick === prevSuccessTick.current) return;
+    prevSuccessTick.current = purchaseSuccessTick;
+    Alert.alert(
+      isTr ? '🎉 Tebrikler!' : '🎉 Success!',
+      isTr ? 'Pro üyeliğiniz aktif edildi. Tüm özelliklere erişebilirsiniz.' : 'Your Pro membership is active. You can now access all features.',
+      [{ text: 'OK', onPress: () => router.back() }]
+    );
+  }, [purchaseSuccessTick, isTr, router]);
+
+  const prevErrorTick = useRef(purchaseErrorTick);
+  useEffect(() => {
+    if (purchaseErrorTick === prevErrorTick.current) return;
+    prevErrorTick.current = purchaseErrorTick;
+    toast.error(
+      isTr ? 'Satın alma sırasında bir hata oluştu. Lütfen tekrar deneyin.' : 'An error occurred during the purchase. Please try again.'
+    );
+  }, [purchaseErrorTick, isTr, toast]);
 
   const features = [
     { icon: 'bar-chart', tr: 'Yıllık Maaş Raporu', en: 'Annual Salary Report' },
@@ -36,16 +68,15 @@ export default function UpgradeScreen() {
   const onPurchase = async () => {
     setLoading(true);
     try {
-      const ok = await purchasePro();
-      if (ok) {
-        Alert.alert(
-          isTr ? '🎉 Tebrikler!' : '🎉 Success!',
-          isTr ? 'Pro üyeliğiniz aktif edildi. Tüm özelliklere erişebilirsiniz.' : 'Your Pro membership is active. You can now access all features.',
-          [{ text: 'OK', onPress: () => router.back() }]
+      const result = await purchasePro();
+      if (result === 'unsupported') {
+        toast.error(
+          isTr ? 'Bu ortamda uygulama içi satın alma desteklenmiyor.' : 'In-app purchases are not supported in this environment.'
         );
-      } else {
-        toast.error(isTr ? 'Satın alma tamamlanamadı.' : 'Purchase could not be completed.');
       }
+      // 'dispatched' -> wait for the purchaseSuccessTick/purchaseErrorTick effects above.
+      // 'cancelled' -> user backed out deliberately, stay silent.
+      // 'error' -> already surfaced via the purchaseErrorTick effect above.
     } finally {
       setLoading(false);
     }
@@ -53,10 +84,17 @@ export default function UpgradeScreen() {
 
   const onRestore = async () => {
     setLoading(true);
-    const ok = await restorePurchases();
+    const result = await restorePurchases();
     setLoading(false);
-    if (ok) toast.success(isTr ? 'Pro üyeliğiniz geri yüklendi.' : 'Pro membership restored.');
-    else toast.info(isTr ? 'Aktif bir satın alma bulunamadı.' : 'No active purchase found.');
+    if (result === 'restored') {
+      toast.success(isTr ? 'Pro üyeliğiniz geri yüklendi.' : 'Pro membership restored.');
+    } else if (result === 'not_found') {
+      toast.info(isTr ? 'Aktif bir satın alma bulunamadı.' : 'No active purchase found.');
+    } else {
+      toast.error(
+        isTr ? 'Satın alma bilgileri alınamadı. Lütfen tekrar deneyin.' : 'Could not retrieve purchase information. Please try again.'
+      );
+    }
   };
 
   return (
@@ -116,12 +154,12 @@ export default function UpgradeScreen() {
             </Text>
           </View>
         ) : (
-          <Pressable onPress={onPurchase} disabled={loading || purchasing}>
+          <Pressable onPress={onPurchase} disabled={loading || purchasing || !ready}>
             <LinearGradient
               colors={[colors.primary, colors.accent]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={[styles.buyBtn, (loading || purchasing) && { opacity: 0.6 }]}
+              style={[styles.buyBtn, (loading || purchasing || !ready) && { opacity: 0.6 }]}
             >
               {(loading || purchasing) ? (
                 <ActivityIndicator color="#fff" />
