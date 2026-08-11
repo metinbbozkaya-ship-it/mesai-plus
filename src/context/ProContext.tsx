@@ -49,7 +49,6 @@ interface ProContextValue {
   purchasing: boolean;
   purchasePro: () => Promise<boolean>;
   restorePurchases: () => Promise<boolean>;
-  _devSetPro: (val: boolean) => Promise<void>;
 }
 
 const ProContext = createContext<ProContextValue | null>(null);
@@ -132,9 +131,14 @@ export function ProProvider({ children }: { children: React.ReactNode }) {
         purchaseUpdateSub.current = Iap.purchaseUpdatedListener(async (purchase: any) => {
           const productId = purchase?.productId ?? purchase?.id;
           if (productId !== PRO_SKU) return;
+          if (purchase?.purchaseState === 'pending') {
+            // Awaiting external approval (e.g. Ask to Buy) — don't grant entitlement yet.
+            setPurchasing(false);
+            return;
+          }
           try {
-            await persistPro(true);
             await Iap.finishTransaction({ purchase, isConsumable: false });
+            await persistPro(true);
           } catch (e) {
             console.warn('[IAP] finishTransaction failed', e);
           } finally {
@@ -170,10 +174,10 @@ export function ProProvider({ children }: { children: React.ReactNode }) {
   const purchasePro = useCallback(async (): Promise<boolean> => {
     const Iap = loadIap();
 
-    // Web / Expo Go fallback
+    // Web / Expo Go fallback — no native store to purchase from, don't grant Pro.
     if (!Iap) {
-      await persistPro(true);
-      return true;
+      if (__DEV__) console.warn('[IAP] purchasePro: native IAP not available on this platform/runtime');
+      return false;
     }
 
     setPurchasing(true);
@@ -225,6 +229,8 @@ export function ProProvider({ children }: { children: React.ReactNode }) {
         }
         return true;
       }
+      // Store confirmed no active PRO_SKU purchase — stale local cache shouldn't be trusted.
+      await persistPro(false);
       return false;
     } catch (e) {
       console.warn('[IAP] restore failed', e);
@@ -232,13 +238,9 @@ export function ProProvider({ children }: { children: React.ReactNode }) {
     }
   }, [persistPro]);
 
-  const _devSetPro = useCallback(async (val: boolean) => {
-    await persistPro(val);
-  }, [persistPro]);
-
   return (
     <ProContext.Provider
-      value={{ isPro, ready, product, purchasing, purchasePro, restorePurchases, _devSetPro }}
+      value={{ isPro, ready, product, purchasing, purchasePro, restorePurchases }}
     >
       {children}
     </ProContext.Provider>
