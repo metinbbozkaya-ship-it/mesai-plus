@@ -60,8 +60,8 @@ export default function ProfileScreen() {
     Alert.alert(
       isTr ? 'Yedeği Geri Yükle' : 'Restore Backup',
       isTr
-        ? 'Mevcut verileriniz yedek dosyasındaki verilerle değiştirilecek. Devam etmek istiyor musunuz?'
-        : 'Your current data will be replaced with data from the backup file. Continue?',
+        ? 'Mevcut verileriniz yedek dosyasındaki verilerle değiştirilecek. Seçtiğiniz yedek dosyası başka bir kişiye ait olabilir. Geri yükleme işlemi mevcut profil, maaş ve mesai verilerinizi değiştirebilir. Devam etmek istiyor musunuz?'
+        : 'Your current data will be replaced with data from the backup file. The selected backup file may belong to another person. Restoring it may replace your current profile, salary and work data. Continue?',
       [
         { text: isTr ? 'İptal' : 'Cancel', style: 'cancel' },
         {
@@ -233,8 +233,8 @@ export default function ProfileScreen() {
           <View style={[styles.backupCard, { gap: spacing.sm }]}>
             <Text style={styles.backupDesc}>
               {isTr
-                ? 'Verilerinizi bir dosyaya yedekleyin veya önceki bir yedeği geri yükleyin. Yedek dosyaları cihazınızda kalır; hiçbir sunucuya gönderilmez.'
-                : 'Back up your data to a file or restore from a previous backup. Backup files stay on your device; nothing is uploaded.'}
+                ? 'Verilerinizi bir dosyaya yedekleyin veya önceki bir yedeği geri yükleyin. Yedek dosyanız cihazınızda oluşturulur. Paylaşmayı seçerseniz, seçtiğiniz uygulama veya hizmete gönderilebilir.'
+                : 'Back up your data to a file or restore from a previous backup. Your backup file is created on your device. If you choose to share it, it may be sent to the app or service you select.'}
             </Text>
             <Pressable onPress={handleExportBackup} disabled={busy !== null} style={({ pressed }) => [{ opacity: pressed ? 0.85 : 1 }]}>
               <LinearGradient

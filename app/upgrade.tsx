@@ -28,7 +28,11 @@ export default function UpgradeScreen() {
   const styles = getStyles(colors);
   const [loading, setLoading] = useState(false);
   const isTr = language === 'tr';
-  const displayPrice = product?.localizedPrice || '₺179,99';
+  const displayPrice = product?.localizedPrice
+    ? product.localizedPrice
+    : !ready
+      ? (isTr ? 'Fiyat yükleniyor…' : 'Loading price…')
+      : (isTr ? 'Fiyat bilgisi alınamadı' : 'Price unavailable');
 
   useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });

@@ -14,8 +14,8 @@ export function PrivacyCard({ language, theme }: Props) {
 
   const title = isTr ? 'Veri Gizliliği' : 'Data Privacy';
   const body = isTr
-    ? 'Maaş ve mesai verileriniz uçtan uca şifrelenerek sadece cihazınızda saklanır. Sunucularımıza hiçbir kişisel veri aktarılmaz.'
-    : 'Your salary and work data are end-to-end encrypted and stored only on your device. No personal data is ever sent to our servers.';
+    ? 'Maaş ve mesai kayıtlarınız uygulama tarafından cihazınızda saklanır ve Android sistem yedeklemesine dahil edilmez. Bazı isteğe bağlı özellikler, örneğin fiş tarama, işlem için üçüncü taraf hizmetlerden yararlanabilir.'
+    : 'Your salary and work records are stored on your device by the app and are not included in Android system backups. Some optional features, such as receipt scanning, may use third-party services for processing.';
 
   return (
     <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.accent + '40' }]}>

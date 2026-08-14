@@ -279,6 +279,34 @@ export default function OptionsScreen() {
           </Text>
         </View>
 
+        <Pressable
+          onPress={() => router.push('/privacy')}
+          style={({ pressed }) => [
+            styles.card,
+            { flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm, opacity: pressed ? 0.8 : 1 },
+          ]}
+        >
+          <Ionicons name="shield-checkmark-outline" size={20} color={colors.accent} style={{ marginRight: spacing.sm }} />
+          <Text style={{ color: colors.text, fontSize: 15, fontWeight: '600', flex: 1 }}>
+            {isTr ? 'Gizlilik Politikası' : 'Privacy Policy'}
+          </Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+        </Pressable>
+
+        <Pressable
+          onPress={() => router.push('/terms')}
+          style={({ pressed }) => [
+            styles.card,
+            { flexDirection: 'row', alignItems: 'center', marginTop: spacing.sm, opacity: pressed ? 0.8 : 1 },
+          ]}
+        >
+          <Ionicons name="document-text-outline" size={20} color={colors.accent} style={{ marginRight: spacing.sm }} />
+          <Text style={{ color: colors.text, fontSize: 15, fontWeight: '600', flex: 1 }}>
+            {isTr ? 'Kullanım Koşulları' : 'Terms of Use'}
+          </Text>
+          <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+        </Pressable>
+
         <LegalDisclaimer />
       </ScrollView>
     </SafeAreaView>

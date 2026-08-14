@@ -5,6 +5,7 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useFocusEffect } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
+import * as FileSystem from 'expo-file-system/legacy';
 import { getColors, radius, spacing } from '../../src/theme';
 import { useApp } from '../../src/context/AppContext';
 import { usePro } from '../../src/context/ProContext';
@@ -186,6 +187,8 @@ export default function WalletScreen() {
   };
 
   const scanReceipt = async (source: 'camera' | 'library') => {
+    let timeoutId: ReturnType<typeof setTimeout> | null = null;
+    let imageUri: string | null = null;
     try {
       let perm;
       if (source === 'camera') perm = await ImagePicker.requestCameraPermissionsAsync();
@@ -197,21 +200,44 @@ export default function WalletScreen() {
         : await ImagePicker.launchImageLibraryAsync({ base64: true, quality: 0.6, mediaTypes: ImagePicker.MediaTypeOptions.Images });
 
       if (result.canceled || !result.assets?.[0]?.base64) return;
+      imageUri = result.assets[0].uri ?? null;
       const b64 = result.assets[0].base64;
       if (b64.length > 900_000) { toast.warning(isTr ? 'Resim çok büyük, daha küçük seçin' : 'Image too large'); return; }
 
       setScanning(true);
+
+      const apiKey = process.env.EXPO_PUBLIC_OCR_API_KEY;
+      if (!apiKey) {
+        toast.error(isTr ? 'Fiş tarama servisi şu anda kullanılamıyor.' : 'Receipt scanning service is currently unavailable.');
+        return;
+      }
+
       const form = new FormData();
       form.append('base64Image', `data:image/jpeg;base64,${b64}`);
       form.append('language', 'tur');
       form.append('scale', 'true');
       form.append('OCREngine', '2');
 
+      const controller = new AbortController();
+      timeoutId = setTimeout(() => controller.abort(), 20000);
+
       const resp = await fetch('https://api.ocr.space/parse/image', {
         method: 'POST',
-        headers: { apikey: 'helloworld' },
+        headers: { apikey: apiKey },
         body: form as any,
+        signal: controller.signal,
       });
+      if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
+
+      if (!resp.ok) {
+        if (resp.status === 429) {
+          toast.error(isTr ? 'Servis şu anda yoğun, lütfen birazdan tekrar deneyin.' : 'The service is busy right now, please try again shortly.');
+        } else {
+          toast.error(isTr ? 'Fiş okuma servisine ulaşılamadı. Lütfen tekrar deneyin.' : 'Could not reach the receipt scanning service. Please try again.');
+        }
+        return;
+      }
+
       const json: any = await resp.json();
       const parsedText: string = json?.ParsedResults?.[0]?.ParsedText || '';
       if (!parsedText) {
@@ -225,17 +251,31 @@ export default function WalletScreen() {
       setExpModal(true);
       toast.success(isTr ? 'Fiş okundu, kontrol edin' : 'Receipt scanned, please verify');
     } catch (e: any) {
-      console.warn('[OCR]', e);
-      toast.error(isTr ? 'Fiş okuma başarısız' : 'Scan failed');
+      if (timeoutId) { clearTimeout(timeoutId); timeoutId = null; }
+      if (e?.name === 'AbortError') {
+        toast.error(isTr ? 'İşlem zaman aşımına uğradı. Lütfen tekrar deneyin.' : 'The request timed out. Please try again.');
+      } else {
+        console.warn('[OCR]', e);
+        toast.error(isTr ? 'Fiş okuma başarısız' : 'Scan failed');
+      }
     } finally {
       setScanning(false);
+      if (imageUri) {
+        try {
+          await FileSystem.deleteAsync(imageUri, { idempotent: true });
+        } catch (cleanupError) {
+          if (__DEV__) console.warn('[OCR] temp image cleanup failed', cleanupError);
+        }
+      }
     }
   };
 
   const openScanChoice = () => {
     Alert.alert(
       isTr ? 'Fiş Okut' : 'Scan Receipt',
-      isTr ? 'Fiş kaynağı seçin' : 'Choose source',
+      isTr
+        ? 'Fiş kaynağı seçin. Fiş görseliniz, metne dönüştürülmek üzere üçüncü taraf bir OCR servisine gönderilecektir.'
+        : 'Choose source. Your receipt image will be sent to a third-party OCR service for text recognition.',
       [
         { text: isTr ? 'Kamera' : 'Camera', onPress: () => scanReceipt('camera') },
         { text: isTr ? 'Galeri' : 'Gallery', onPress: () => scanReceipt('library') },

@@ -404,12 +404,107 @@ const BACKUP_KEYS = [
   'mesai.leave.days.v2',
 ];
 
+const CURRENT_BACKUP_VERSION = 1;
+
 export interface BackupPayload {
   app: string;
   version: number;
   createdAt: string;
   data: Record<string, unknown>;
 }
+
+// ---------- Backup payload validation (side-effect free) ----------
+function isPlainObject(v: unknown): v is Record<string, unknown> {
+  return typeof v === 'object' && v !== null && !Array.isArray(v);
+}
+
+function isFiniteNumber(v: unknown): v is number {
+  return typeof v === 'number' && Number.isFinite(v);
+}
+
+const DAY_TYPES = new Set(['weekday', 'saturday', 'sunday', 'holiday']);
+const LEAVE_TYPES = new Set(['annual', 'excuse', 'sick', 'unpaid']);
+
+function isValidSettings(v: unknown): boolean {
+  if (!isPlainObject(v)) return false;
+  if (v.firstName !== undefined && typeof v.firstName !== 'string') return false;
+  if (v.lastName !== undefined && typeof v.lastName !== 'string') return false;
+  if (v.email !== undefined && typeof v.email !== 'string') return false;
+  if (v.updatedAt !== undefined && typeof v.updatedAt !== 'string') return false;
+  if (v.notificationsEnabled !== undefined && typeof v.notificationsEnabled !== 'boolean') return false;
+  if (v.notificationTime !== undefined && typeof v.notificationTime !== 'string') return false;
+  if (v.startDate !== undefined && typeof v.startDate !== 'string') return false;
+  if (v.monthlyGoal !== undefined && !isFiniteNumber(v.monthlyGoal)) return false;
+  if (v.monthlySalaries !== undefined) {
+    if (!isPlainObject(v.monthlySalaries)) return false;
+    for (const val of Object.values(v.monthlySalaries)) {
+      if (!isFiniteNumber(val)) return false;
+    }
+  }
+  if (v.activeWorkplaceId !== undefined && typeof v.activeWorkplaceId !== 'string') return false;
+  if (v.workplaces !== undefined) {
+    if (!Array.isArray(v.workplaces)) return false;
+    for (const w of v.workplaces) {
+      if (!isPlainObject(w)) return false;
+      if (typeof w.id !== 'string' || typeof w.name !== 'string') return false;
+    }
+  }
+  return true;
+}
+
+function isValidEntries(v: unknown): boolean {
+  if (!isPlainObject(v)) return false;
+  for (const entry of Object.values(v)) {
+    if (!isPlainObject(entry)) return false;
+    if (typeof entry.date !== 'string') return false;
+    if (!isFiniteNumber(entry.hours)) return false;
+    if (typeof entry.isAbsence !== 'boolean') return false;
+    if (typeof entry.dayType !== 'string' || !DAY_TYPES.has(entry.dayType)) return false;
+    if (!isFiniteNumber(entry.multiplier)) return false;
+    if (!isFiniteNumber(entry.earnings)) return false;
+    if (entry.updatedAt !== undefined && typeof entry.updatedAt !== 'string') return false;
+    if (entry.customMultiplier !== undefined && !isFiniteNumber(entry.customMultiplier)) return false;
+    if (entry.workplaceId !== undefined && typeof entry.workplaceId !== 'string') return false;
+  }
+  return true;
+}
+
+function isValidLanguage(v: unknown): boolean {
+  return v === 'tr' || v === 'en';
+}
+
+function isValidTheme(v: unknown): boolean {
+  return v === 'dark' || v === 'light' || v === 'system';
+}
+
+function isValidLeaveStartDate(v: unknown): boolean {
+  return typeof v === 'string' && !isNaN(new Date(v).getTime());
+}
+
+function isValidLeaveDays(v: unknown): boolean {
+  if (!Array.isArray(v)) return false;
+  for (const d of v) {
+    if (!isPlainObject(d)) return false;
+    if (typeof d.date !== 'string') return false;
+    if (typeof d.type !== 'string' || !LEAVE_TYPES.has(d.type)) return false;
+    if (d.note !== undefined && typeof d.note !== 'string') return false;
+  }
+  return true;
+}
+
+function isValidLeaveUsedLegacy(v: unknown): boolean {
+  return isFiniteNumber(v) || (typeof v === 'string' && v.trim() !== '' && !isNaN(Number(v)));
+}
+
+// Low-risk fields: if invalid, skip just that key and keep the current value
+// instead of rejecting the whole import.
+const OPTIONAL_KEY_VALIDATORS: Record<string, (v: unknown) => boolean> = {
+  'mesai.language.v1': isValidLanguage,
+  'mesai.theme.v1': isValidTheme,
+  'mesai.leave.startDate.v2': isValidLeaveStartDate,
+  'mesai.leave.days.v2': isValidLeaveDays,
+  'mesai.leave.usedDays.v2': isValidLeaveUsedLegacy,
+};
 
 export async function exportBackup(): Promise<void> {
   const data: Record<string, unknown> = {};
@@ -446,13 +541,26 @@ export async function importBackup(): Promise<{ ok: boolean; message: string }> 
   } catch {
     return { ok: false, message: 'INVALID_JSON' };
   }
-  if (!parsed || parsed.app !== APP || !parsed.data || typeof parsed.data !== 'object') {
+  if (!parsed || parsed.app !== APP || !isPlainObject(parsed.data)) {
     return { ok: false, message: 'INVALID_FORMAT' };
   }
+  const version = parsed.version === undefined ? 1 : parsed.version;
+  if (typeof version !== 'number' || version > CURRENT_BACKUP_VERSION) {
+    return { ok: false, message: 'INVALID_FORMAT' };
+  }
+  const data = parsed.data;
+  if ('mesai.settings.v1' in data && !isValidSettings(data['mesai.settings.v1'])) {
+    return { ok: false, message: 'INVALID_FORMAT' };
+  }
+  if ('mesai.entries.v1' in data && !isValidEntries(data['mesai.entries.v1'])) {
+    return { ok: false, message: 'INVALID_FORMAT' };
+  }
+  // All validation above is side-effect free. Only past this point do we write.
   for (const k of BACKUP_KEYS) {
-    if (k in parsed.data) {
-      await AsyncStorage.setItem(k, JSON.stringify(parsed.data[k]));
-    }
+    if (!(k in data)) continue;
+    const validateOptional = OPTIONAL_KEY_VALIDATORS[k];
+    if (validateOptional && !validateOptional(data[k])) continue;
+    await AsyncStorage.setItem(k, JSON.stringify(data[k]));
   }
   return { ok: true, message: 'OK' };
 }
