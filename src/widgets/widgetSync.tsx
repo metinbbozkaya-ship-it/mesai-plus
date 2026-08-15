@@ -101,7 +101,7 @@ export async function syncMesaiWidget(
   try {
     const { requestWidgetUpdate } = await import('react-native-android-widget');
     const { MesaiWidget } = await import('./MesaiWidget');
-    requestWidgetUpdate({
+    await requestWidgetUpdate({
       widgetName: 'Mesai',
       renderWidget: () => <MesaiWidget {...data} />,
       widgetNotFound: () => {},

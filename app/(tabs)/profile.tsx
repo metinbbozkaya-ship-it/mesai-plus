@@ -22,7 +22,7 @@ import { t } from '../../src/utils/i18n';
 import { PrivacyCard } from '../../src/components/PrivacyCard';
 import { LegalDisclaimer } from '../../src/components/LegalDisclaimer';
 import { PageHeader } from '../../src/components/PageHeader';
-import { exportBackup, importBackup } from '../../src/services/dataExport';
+import { exportBackup, importBackup, confirmImportBackup } from '../../src/services/dataExport';
 import { usePro } from '../../src/context/ProContext';
 import { useRouter } from 'expo-router';
 
@@ -55,6 +55,37 @@ export default function ProfileScreen() {
     }
   };
 
+  // Second confirmation shown only when the backup's profile email doesn't
+  // match the current session email. Cancel writes nothing; Continue writes
+  // the same already-validated data via confirmImportBackup (no re-picking).
+  const handleOwnerMismatch = (data: Record<string, unknown>): Promise<void> => {
+    return new Promise((resolve) => {
+      Alert.alert(
+        isTr ? 'Farklı kullanıcı yedeği' : 'Different user backup',
+        isTr
+          ? 'Bu yedekteki profil e-postası mevcut oturum e-postasıyla eşleşmiyor. Yedek başka bir kişiye ait olabilir. Devam ederseniz mevcut profil, maaş ve mesai verileriniz değiştirilecektir. Yine de geri yüklemek istiyor musunuz?'
+          : 'The profile email in this backup does not match the current session email. This backup may belong to another person. Continuing may replace your current profile, salary and work data. Do you still want to restore it?',
+        [
+          { text: isTr ? 'İptal' : 'Cancel', style: 'cancel', onPress: () => resolve() },
+          {
+            text: isTr ? 'Devam Et' : 'Continue',
+            style: 'destructive',
+            onPress: async () => {
+              const r2 = await confirmImportBackup(data);
+              if (!r2.ok) {
+                toast.error(isTr ? 'Geri yükleme başarısız' : 'Restore failed');
+              } else {
+                await refresh();
+                toast.success(isTr ? 'Verileriniz geri yüklendi' : 'Data restored');
+              }
+              resolve();
+            },
+          },
+        ]
+      );
+    });
+  };
+
   const handleImportBackup = async () => {
     if (!isPro) { router.push('/upgrade'); return; }
     Alert.alert(
@@ -73,6 +104,10 @@ export default function ProfileScreen() {
               const r = await importBackup();
               if (!r.ok) {
                 if (r.message === 'CANCELLED') return;
+                if (r.message === 'OWNER_MISMATCH' && r.mismatch) {
+                  await handleOwnerMismatch(r.mismatch.data);
+                  return;
+                }
                 toast.error(
                   r.message === 'INVALID_FORMAT' || r.message === 'INVALID_JSON'
                     ? (isTr ? 'Geçersiz yedek dosyası' : 'Invalid backup file')

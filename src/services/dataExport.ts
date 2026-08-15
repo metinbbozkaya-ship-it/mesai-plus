@@ -413,6 +413,22 @@ export interface BackupPayload {
   data: Record<string, unknown>;
 }
 
+// Backward-compatible extension of the existing { ok, message } contract:
+// `mismatch` is only present when message === 'OWNER_MISMATCH'.
+export interface BackupImportResult {
+  ok: boolean;
+  message: string;
+  mismatch?: {
+    backupEmail: string;
+    currentEmail: string;
+    data: Record<string, unknown>;
+  };
+}
+
+function normalizeEmail(v: unknown): string {
+  return typeof v === 'string' ? v.trim().toLowerCase() : '';
+}
+
 // ---------- Backup payload validation (side-effect free) ----------
 function isPlainObject(v: unknown): v is Record<string, unknown> {
   return typeof v === 'object' && v !== null && !Array.isArray(v);
@@ -528,7 +544,27 @@ export async function exportBackup(): Promise<void> {
   await shareFile(path, 'application/json', 'Yedek Paylaş');
 }
 
-export async function importBackup(): Promise<{ ok: boolean; message: string }> {
+// Applies already-validated backup data to AsyncStorage. Re-runs the settings/
+// entries validators defensively so this step can never bypass validation,
+// regardless of which caller (direct import or a post-confirmation import)
+// invokes it.
+async function writeBackupData(data: Record<string, unknown>): Promise<BackupImportResult> {
+  if ('mesai.settings.v1' in data && !isValidSettings(data['mesai.settings.v1'])) {
+    return { ok: false, message: 'INVALID_FORMAT' };
+  }
+  if ('mesai.entries.v1' in data && !isValidEntries(data['mesai.entries.v1'])) {
+    return { ok: false, message: 'INVALID_FORMAT' };
+  }
+  for (const k of BACKUP_KEYS) {
+    if (!(k in data)) continue;
+    const validateOptional = OPTIONAL_KEY_VALIDATORS[k];
+    if (validateOptional && !validateOptional(data[k])) continue;
+    await AsyncStorage.setItem(k, JSON.stringify(data[k]));
+  }
+  return { ok: true, message: 'OK' };
+}
+
+export async function importBackup(): Promise<BackupImportResult> {
   const res = await DocumentPicker.getDocumentAsync({ type: ['application/json', '*/*'], copyToCacheDirectory: true });
   if (res.canceled || !res.assets || res.assets.length === 0) {
     return { ok: false, message: 'CANCELLED' };
@@ -555,12 +591,29 @@ export async function importBackup(): Promise<{ ok: boolean; message: string }> 
   if ('mesai.entries.v1' in data && !isValidEntries(data['mesai.entries.v1'])) {
     return { ok: false, message: 'INVALID_FORMAT' };
   }
-  // All validation above is side-effect free. Only past this point do we write.
-  for (const k of BACKUP_KEYS) {
-    if (!(k in data)) continue;
-    const validateOptional = OPTIONAL_KEY_VALIDATORS[k];
-    if (validateOptional && !validateOptional(data[k])) continue;
-    await AsyncStorage.setItem(k, JSON.stringify(data[k]));
+
+  // Owner check: compare the backup's profile email against the current
+  // session email. If either side is empty (legacy backup, or no email
+  // saved/logged in yet), skip the check entirely — never block. If both are
+  // present and differ, don't write anything; let the caller ask the user
+  // to confirm via confirmImportBackup().
+  const backupSettings = data['mesai.settings.v1'];
+  const backupEmail = isPlainObject(backupSettings) ? normalizeEmail(backupSettings.email) : '';
+  const currentEmailRaw = await AsyncStorage.getItem('mesai.user.email.v1');
+  const currentEmail = normalizeEmail(currentEmailRaw);
+  if (backupEmail && currentEmail && backupEmail !== currentEmail) {
+    return { ok: false, message: 'OWNER_MISMATCH', mismatch: { backupEmail, currentEmail, data } };
   }
-  return { ok: true, message: 'OK' };
+
+  // All validation above is side-effect free. Only past this point do we write.
+  return writeBackupData(data);
+}
+
+// Writes backup data that was already parsed/validated by a prior
+// importBackup() call whose result was OWNER_MISMATCH, after the user has
+// explicitly confirmed. Does not re-pick or re-read the file — it re-runs
+// validation (via writeBackupData) but not the file/JSON/version checks,
+// since those already passed to produce the mismatch result in the first place.
+export async function confirmImportBackup(data: Record<string, unknown>): Promise<BackupImportResult> {
+  return writeBackupData(data);
 }
