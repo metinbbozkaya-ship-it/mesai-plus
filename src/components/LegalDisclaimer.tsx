@@ -1,16 +1,15 @@
 import React from 'react';
 import { Text, StyleSheet, View } from 'react-native';
 import { useApp } from '../context/AppContext';
-import { spacing } from '../theme';
+import { getColors, spacing } from '../theme';
 
 export function LegalDisclaimer() {
   const { language, theme } = useApp();
   const isTr = language === 'tr';
-  const isDark = theme === 'dark';
-  const color = isDark ? 'rgba(255,255,255,0.45)' : '#888888';
+  const colors = getColors(theme);
   return (
     <View style={styles.wrap}>
-      <Text style={[styles.txt, { color }]}>
+      <Text style={[styles.txt, { color: colors.textMuted }]}>
         {isTr
           ? 'Uygulama tarafından yapılan hesaplamalar bilgilendirme amaçlıdır. Resmi bordro işlemleri için muhasebe biriminize danışınız.'
           : 'Calculations made by this app are for informational purposes only. For official payroll matters, please consult your accounting department.'}

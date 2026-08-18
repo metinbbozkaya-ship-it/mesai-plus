@@ -8,10 +8,11 @@ import {
   Modal,
   TextInput,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useNavigation, useRouter } from 'expo-router';
-import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
 import { useApp } from '../../../src/context/AppContext';
 import { useToast } from '../../../src/context/ToastContext';
@@ -20,7 +21,9 @@ import { getColors, radius, spacing } from '../../../src/theme';
 import type { Workplace } from '../../../src/storage/db';
 
 const EMOJI_OPTIONS = ['🏢', '🏬', '💼', '🏭', '🛠️', '💻', '🏥', '🏫', '🍽️', '🚚', '✈️', '🛩️', '🏪', '🔧', '🎨'];
-const COLOR_OPTIONS = ['#8B5CF6', '#22D3EE', '#F97316', '#EF4444', '#0EA5E9', '#10B981', '#F59E0B', '#EC4899', '#84CC16', '#6366F1'];
+// Calmer, corporate-friendly identification colors (still distinct hues for
+// telling workplaces apart at a glance, no full-saturation neon).
+const COLOR_OPTIONS = ['#2563EB', '#0EA5E9', '#0D9488', '#059669', '#65A30D', '#CA8A04', '#EA580C', '#DC2626', '#7C3AED', '#475569'];
 
 export default function WorkplacesScreen() {
   const navigation = useNavigation<any>();
@@ -87,10 +90,6 @@ export default function WorkplacesScreen() {
       const nw = await addWorkplace({ name: trimmed, emoji, color });
       if (nw) {
         toast.success(isTr ? 'İş yeri eklendi' : 'Workplace added');
-        // Auto-activate if it's the first
-        if (workplaces.length === 0) {
-          await setActiveWorkplaceId(nw.id);
-        }
       }
     }
     setModalVisible(false);
@@ -118,10 +117,6 @@ export default function WorkplacesScreen() {
 
   return (
     <SafeAreaView style={styles.container}>
-      <LinearGradient
-        colors={[colors.bg, colors.bg2]}
-        style={StyleSheet.absoluteFillObject}
-      />
       <ScrollView contentContainerStyle={{ padding: spacing.lg, gap: spacing.md }}>
         <View style={styles.headerRow}>
           <View>
@@ -140,7 +135,7 @@ export default function WorkplacesScreen() {
           style={[
             styles.card,
             { flexDirection: 'row', alignItems: 'center', gap: 12 },
-            activeWorkplaceId === '' && { borderColor: colors.accent, borderWidth: 2 },
+            activeWorkplaceId === '' && { borderColor: colors.primary, borderWidth: 2, backgroundColor: colors.primary + '0D' },
           ]}
         >
           <View style={[styles.wpIcon, { backgroundColor: colors.surface }]}>
@@ -149,11 +144,13 @@ export default function WorkplacesScreen() {
           <View style={{ flex: 1 }}>
             <Text style={styles.wpName}>{isTr ? 'Tümü' : 'All'}</Text>
             <Text style={styles.wpMeta}>
-              {isTr ? 'Tüm iş yerlerini birlikte gör' : 'Show all workplaces together'}
+              {activeWorkplaceId === ''
+                ? (isTr ? 'Aktif' : 'Active')
+                : (isTr ? 'Tüm iş yerlerini birlikte gör' : 'Show all workplaces together')}
             </Text>
           </View>
           {activeWorkplaceId === '' && (
-            <Ionicons name="checkmark-circle" size={22} color={colors.accent} />
+            <Ionicons name="checkmark-circle" size={22} color={colors.primary} />
           )}
         </Pressable>
 
@@ -162,7 +159,7 @@ export default function WorkplacesScreen() {
             key={w.id}
             style={[
               styles.card,
-              activeWorkplaceId === w.id && { borderColor: w.color, borderWidth: 2 },
+              activeWorkplaceId === w.id && { borderColor: w.color, borderWidth: 2, backgroundColor: w.color + '0D' },
             ]}
           >
             <Pressable
@@ -211,25 +208,21 @@ export default function WorkplacesScreen() {
           </View>
         ))}
 
-        <Pressable onPress={openAdd}>
-          <LinearGradient
-            colors={[colors.primary, colors.accent]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.addBtn}
-          >
-            <Ionicons name="add-circle" size={22} color="#FFFFFF" />
-            <Text style={styles.addBtnText}>
-              {isTr ? 'İş Yeri Ekle' : 'Add Workplace'}
-            </Text>
-            {!isPro && workplaces.length >= 1 && (
-              <Ionicons name="lock-closed" size={14} color="#FFFFFF" />
-            )}
-          </LinearGradient>
+        <Pressable
+          onPress={openAdd}
+          style={({ pressed }) => [styles.addBtn, { backgroundColor: colors.primary, opacity: pressed ? 0.88 : 1 }]}
+        >
+          <Ionicons name="add-circle" size={22} color="#FFFFFF" />
+          <Text style={styles.addBtnText}>
+            {isTr ? 'İş Yeri Ekle' : 'Add Workplace'}
+          </Text>
+          {!isPro && workplaces.length >= 1 && (
+            <Ionicons name="lock-closed" size={14} color="#FFFFFF" />
+          )}
         </Pressable>
 
         {!isPro && (
-          <View style={[styles.card, { borderColor: colors.accent + '55', borderWidth: 1 }]}>
+          <View style={[styles.card, { borderColor: colors.primary + '40', borderWidth: 1 }]}>
             <Text style={{ color: colors.text, fontSize: 13, fontWeight: '700' }}>
               ✨ {isTr ? 'Pro Avantajı' : 'Pro Benefit'}
             </Text>
@@ -244,7 +237,10 @@ export default function WorkplacesScreen() {
 
       {/* Add/Edit Modal */}
       <Modal visible={modalVisible} transparent animationType="slide" onRequestClose={() => setModalVisible(false)}>
-        <View style={styles.modalOverlay}>
+        <KeyboardAvoidingView
+          style={styles.modalOverlay}
+          behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+        >
           <View style={styles.modalCard}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: spacing.md }}>
               <Text style={styles.modalTitle}>
@@ -255,62 +251,66 @@ export default function WorkplacesScreen() {
               </Pressable>
             </View>
 
-            <Text style={styles.fieldLabel}>{isTr ? 'İsim' : 'Name'}</Text>
-            <TextInput
-              value={name}
-              onChangeText={setName}
-              placeholder={isTr ? 'Ör: Ana İş, Freelance' : 'e.g. Main Job, Freelance'}
-              placeholderTextColor={colors.textDim}
-              style={styles.input}
-              maxLength={30}
-            />
+            <ScrollView
+              keyboardShouldPersistTaps="handled"
+              showsVerticalScrollIndicator={false}
+              contentContainerStyle={styles.modalScrollContent}
+            >
+              <Text style={styles.fieldLabel}>{isTr ? 'İsim' : 'Name'}</Text>
+              <TextInput
+                value={name}
+                onChangeText={setName}
+                placeholder={isTr ? 'Ör: Ana İş, Freelance' : 'e.g. Main Job, Freelance'}
+                placeholderTextColor={colors.textDim}
+                style={styles.input}
+                maxLength={30}
+                autoComplete="off"
+                importantForAutofill="no"
+              />
 
-            <Text style={styles.fieldLabel}>{isTr ? 'Emoji' : 'Emoji'}</Text>
-            <View style={styles.emojiGrid}>
-              {EMOJI_OPTIONS.map((e) => (
-                <Pressable
-                  key={e}
-                  onPress={() => setEmoji(e)}
-                  style={[
-                    styles.emojiOpt,
-                    emoji === e && { borderColor: color, borderWidth: 2, backgroundColor: color + '22' },
-                  ]}
-                >
-                  <Text style={{ fontSize: 20 }}>{e}</Text>
-                </Pressable>
-              ))}
-            </View>
+              <Text style={styles.fieldLabel}>{isTr ? 'Emoji' : 'Emoji'}</Text>
+              <View style={styles.emojiGrid}>
+                {EMOJI_OPTIONS.map((e) => (
+                  <Pressable
+                    key={e}
+                    onPress={() => setEmoji(e)}
+                    style={[
+                      styles.emojiOpt,
+                      emoji === e && { borderColor: color, borderWidth: 2, backgroundColor: color + '22' },
+                    ]}
+                  >
+                    <Text style={{ fontSize: 20 }}>{e}</Text>
+                  </Pressable>
+                ))}
+              </View>
 
-            <Text style={styles.fieldLabel}>{isTr ? 'Renk' : 'Color'}</Text>
-            <View style={styles.emojiGrid}>
-              {COLOR_OPTIONS.map((c) => (
-                <Pressable
-                  key={c}
-                  onPress={() => setColor(c)}
-                  style={[
-                    styles.colorOpt,
-                    { backgroundColor: c },
-                    color === c && { borderColor: '#FFFFFF', borderWidth: 3 },
-                  ]}
-                />
-              ))}
-            </View>
+              <Text style={styles.fieldLabel}>{isTr ? 'Renk' : 'Color'}</Text>
+              <View style={styles.emojiGrid}>
+                {COLOR_OPTIONS.map((c) => (
+                  <Pressable
+                    key={c}
+                    onPress={() => setColor(c)}
+                    style={[
+                      styles.colorOpt,
+                      { backgroundColor: c },
+                      color === c && { borderColor: '#FFFFFF', borderWidth: 3 },
+                    ]}
+                  />
+                ))}
+              </View>
 
-            <Pressable onPress={handleSave} style={{ marginTop: spacing.md }}>
-              <LinearGradient
-                colors={[color, color + 'AA']}
-                start={{ x: 0, y: 0 }}
-                end={{ x: 1, y: 1 }}
-                style={styles.saveBtn}
+              <Pressable
+                onPress={handleSave}
+                style={({ pressed }) => [styles.saveBtn, { backgroundColor: colors.primary, opacity: pressed ? 0.88 : 1, marginTop: spacing.md }]}
               >
                 <Ionicons name="checkmark-circle" size={18} color="#FFFFFF" />
                 <Text style={styles.saveBtnText}>
                   {editing ? (isTr ? 'Güncelle' : 'Update') : (isTr ? 'Ekle' : 'Add')}
                 </Text>
-              </LinearGradient>
-            </Pressable>
+              </Pressable>
+            </ScrollView>
           </View>
-        </View>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );
@@ -366,6 +366,10 @@ const getStyles = (colors: ReturnType<typeof getColors>) =>
       borderTopLeftRadius: radius.xl,
       borderTopRightRadius: radius.xl,
       padding: spacing.lg,
+      maxHeight: '85%',
+    },
+    modalScrollContent: {
+      paddingBottom: spacing.xl,
     },
     modalTitle: { color: colors.text, fontSize: 18, fontWeight: '800' },
     fieldLabel: { color: colors.textMuted, fontSize: 12, fontWeight: '600', marginTop: spacing.md, marginBottom: 6, textTransform: 'uppercase', letterSpacing: 0.5 },

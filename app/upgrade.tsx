@@ -28,11 +28,6 @@ export default function UpgradeScreen() {
   const styles = getStyles(colors);
   const [loading, setLoading] = useState(false);
   const isTr = language === 'tr';
-  const displayPrice = product?.localizedPrice
-    ? product.localizedPrice
-    : !ready
-      ? (isTr ? 'Fiyat yükleniyor…' : 'Loading price…')
-      : (isTr ? 'Fiyat bilgisi alınamadı' : 'Price unavailable');
 
   useLayoutEffect(() => {
     navigation.setOptions({ headerShown: false });
@@ -62,11 +57,12 @@ export default function UpgradeScreen() {
   }, [purchaseErrorTick, isTr, toast]);
 
   const features = [
-    { icon: 'bar-chart', tr: 'Yıllık Maaş Raporu', en: 'Annual Salary Report' },
-    { icon: 'document-text', tr: 'Bordro Hesaplama', en: 'Payroll Calculator' },
-    { icon: 'leaf', tr: 'Yıllık İzin Takibi', en: 'Annual Leave Tracker' },
-    { icon: 'cloud-download', tr: 'PDF Rapor İndirme', en: 'PDF Report Download' },
-    { icon: 'sparkles', tr: 'Reklamsız Deneyim', en: 'Ad-free Experience' },
+    { icon: 'document-text', tr: 'Gelişmiş maaş ve bordro araçları', en: 'Advanced salary & payroll tools' },
+    { icon: 'leaf', tr: 'Yıllık izin takibi', en: 'Annual leave tracking' },
+    { icon: 'wallet', tr: 'Cüzdan ve finans takibi', en: 'Wallet & finance tracking' },
+    { icon: 'swap-horizontal', tr: 'Alacak, avans ve yol/yemek araçları', en: 'Receivables, advances & travel/meal tools' },
+    { icon: 'shield-checkmark', tr: 'SGK, vergi ve iş hukuku araçları', en: 'SGK, tax & labor law tools' },
+    { icon: 'bar-chart', tr: 'Gelişmiş raporlar ve PDF/Excel', en: 'Advanced reports & PDF/Excel' },
   ];
 
   const onPurchase = async () => {
@@ -119,9 +115,40 @@ export default function UpgradeScreen() {
           <Ionicons name="diamond" size={48} color="#fff" />
           <Text style={styles.heroTitle}>Mesai+ Pro</Text>
           <Text style={styles.heroSubtitle}>
-            {isTr ? 'Tüm hesaplama araçlarına sınırsız erişim' : 'Unlimited access to all calculators'}
+            {isTr ? 'Mesai, maaş ve finans araçlarının tamamını aç.' : 'Unlock all overtime, salary and finance tools.'}
           </Text>
+          <View style={styles.heroPill}>
+            <Text style={styles.heroPillText}>
+              {isTr ? 'TEK ÖDEME • ÖMÜR BOYU' : 'ONE-TIME • LIFETIME'}
+            </Text>
+          </View>
         </LinearGradient>
+
+        <View style={[styles.priceCard, { backgroundColor: colors.surface, borderColor: colors.accent, shadowColor: colors.accent }]}>
+          {!ready ? (
+            <>
+              <ActivityIndicator color={colors.accent} />
+              <Text style={[styles.priceSub, { color: colors.textMuted, marginTop: spacing.xs }]}>
+                {isTr ? 'Fiyat yükleniyor…' : 'Loading price…'}
+              </Text>
+            </>
+          ) : product ? (
+            <>
+              <Text style={[styles.priceLabel, { color: colors.textMuted }]}>Mesai+ Pro</Text>
+              <Text style={[styles.priceValue, { color: colors.text }]}>{product.localizedPrice}</Text>
+              <Text style={[styles.priceSub, { color: colors.textMuted }]}>
+                {isTr ? 'Tek seferlik ödeme • Ömür boyu erişim' : 'One-time payment • Lifetime access'}
+              </Text>
+            </>
+          ) : (
+            <>
+              <Ionicons name="storefront-outline" size={26} color={colors.textMuted} />
+              <Text style={[styles.priceSub, { color: colors.textMuted, marginTop: spacing.xs }]}>
+                {isTr ? 'Fiyat mağaza sürümünde görüntülenecek.' : 'Price will be available in the store version.'}
+              </Text>
+            </>
+          )}
+        </View>
 
         <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.border }]}>
           <Text style={[styles.sectionTitle, { color: colors.text }]}>
@@ -140,16 +167,6 @@ export default function UpgradeScreen() {
           ))}
         </View>
 
-        <View style={[styles.priceCard, { backgroundColor: colors.surface, borderColor: colors.accent }]}>
-          <Text style={[styles.priceLabel, { color: colors.textMuted }]}>
-            {isTr ? 'Tek seferlik ödeme' : 'One-time payment'}
-          </Text>
-          <Text style={[styles.priceValue, { color: colors.text }]}>{displayPrice}</Text>
-          <Text style={[styles.priceSub, { color: colors.textMuted }]}>
-            {isTr ? 'Ömür boyu erişim' : 'Lifetime access'}
-          </Text>
-        </View>
-
         {isPro ? (
           <View style={[styles.activeBadge, { backgroundColor: colors.accent + '18', borderColor: colors.accent }]}>
             <Ionicons name="checkmark-circle" size={22} color={colors.accent} />
@@ -158,12 +175,12 @@ export default function UpgradeScreen() {
             </Text>
           </View>
         ) : (
-          <Pressable onPress={onPurchase} disabled={loading || purchasing || !ready}>
+          <Pressable onPress={onPurchase} disabled={loading || purchasing || !ready || !product}>
             <LinearGradient
               colors={[colors.primary, colors.accent]}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
-              style={[styles.buyBtn, (loading || purchasing || !ready) && { opacity: 0.6 }]}
+              style={[styles.buyBtn, (loading || purchasing || !ready || !product) && { opacity: 0.6 }]}
             >
               {(loading || purchasing) ? (
                 <ActivityIndicator color="#fff" />
@@ -177,11 +194,26 @@ export default function UpgradeScreen() {
           </Pressable>
         )}
 
-        <Pressable onPress={onRestore} disabled={loading} style={styles.restoreBtn}>
+        <Pressable onPress={onRestore} disabled={loading} style={[styles.restoreBtn, { backgroundColor: colors.surface, borderColor: colors.border }]}>
+          <Ionicons name="refresh-outline" size={16} color={colors.textMuted} />
           <Text style={[styles.restoreText, { color: colors.textMuted }]}>
             {isTr ? 'Satın alımları geri yükle' : 'Restore purchases'}
           </Text>
         </Pressable>
+
+        <View style={styles.legalRow}>
+          <Pressable onPress={() => router.push('/privacy')} hitSlop={6}>
+            <Text style={[styles.legalLink, { color: colors.textMuted }]}>
+              {isTr ? 'Gizlilik Politikası' : 'Privacy Policy'}
+            </Text>
+          </Pressable>
+          <Text style={[styles.legalDot, { color: colors.textDim }]}>•</Text>
+          <Pressable onPress={() => router.push('/terms')} hitSlop={6}>
+            <Text style={[styles.legalLink, { color: colors.textMuted }]}>
+              {isTr ? 'Kullanım Koşulları' : 'Terms of Service'}
+            </Text>
+          </Pressable>
+        </View>
 
         <Text style={[styles.disclaimer, { color: colors.textDim }]}>
           {isTr
@@ -205,6 +237,16 @@ function getStyles(colors: any) {
     },
     heroTitle: { color: '#fff', fontSize: 28, fontWeight: '900' },
     heroSubtitle: { color: 'rgba(255,255,255,0.9)', fontSize: 13, textAlign: 'center' },
+    heroPill: {
+      marginTop: spacing.xs,
+      paddingHorizontal: 12,
+      paddingVertical: 5,
+      borderRadius: radius.full,
+      backgroundColor: 'rgba(255,255,255,0.2)',
+      borderWidth: 1,
+      borderColor: 'rgba(255,255,255,0.35)',
+    },
+    heroPillText: { color: '#FFFFFF', fontSize: 11, fontWeight: '800', letterSpacing: 0.6 },
     card: {
       borderRadius: radius.md,
       padding: spacing.md,
@@ -224,11 +266,15 @@ function getStyles(colors: any) {
     },
     featureText: { flex: 1, fontSize: 14, fontWeight: '600' },
     priceCard: {
-      borderRadius: radius.md,
-      padding: spacing.md,
+      borderRadius: radius.lg,
+      padding: spacing.lg,
       borderWidth: 2,
       alignItems: 'center',
       gap: spacing.xs,
+      shadowOpacity: 0.25,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 5,
     },
     priceLabel: { fontSize: 11, fontWeight: '700', textTransform: 'uppercase', letterSpacing: 0.5 },
     priceValue: { fontSize: 36, fontWeight: '900' },
@@ -242,9 +288,26 @@ function getStyles(colors: any) {
       borderRadius: radius.md,
     },
     buyBtnText: { color: '#fff', fontSize: 16, fontWeight: '800' },
-    restoreBtn: { alignItems: 'center', paddingVertical: spacing.sm },
-    restoreText: { fontSize: 13, fontWeight: '600', textDecorationLine: 'underline' },
-    disclaimer: { fontSize: 11, textAlign: 'center', lineHeight: 16, marginTop: spacing.sm },
+    restoreBtn: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 6,
+      paddingVertical: spacing.sm,
+      borderRadius: radius.md,
+      borderWidth: 1,
+    },
+    restoreText: { fontSize: 13, fontWeight: '600' },
+    legalRow: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'center',
+      gap: 8,
+      marginTop: spacing.xs,
+    },
+    legalLink: { fontSize: 12, fontWeight: '600', textDecorationLine: 'underline' },
+    legalDot: { fontSize: 12 },
+    disclaimer: { fontSize: 11, textAlign: 'center', lineHeight: 16, marginTop: spacing.xs },
     activeBadge: {
       flexDirection: 'row',
       alignItems: 'center',

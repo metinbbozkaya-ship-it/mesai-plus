@@ -17,9 +17,11 @@ interface Props {
   showMonth?: boolean;
   showProButton?: boolean;
   showMenu?: boolean;
+  /** Set false to hide the big title line (e.g. Home, which uses its own identity block instead). Everything else in the header row is unaffected. */
+  showTitle?: boolean;
 }
 
-export function PageHeader({ title, showMonth = true, showProButton = true, showMenu = true }: Props) {
+export function PageHeader({ title, showMonth = true, showProButton = true, showMenu = true, showTitle = true }: Props) {
   const { theme, language } = useApp();
   const { isPro } = usePro();
   const { open } = useMenu();
@@ -35,9 +37,11 @@ export function PageHeader({ title, showMonth = true, showProButton = true, show
   return (
     <SafeAreaView edges={['top']} style={{ backgroundColor: colors.bg }}>
       <View style={styles.wrap}>
-        <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
-          {title}
-        </Text>
+        {showTitle && (
+          <Text style={[styles.title, { color: colors.text }]} numberOfLines={1}>
+            {title}
+          </Text>
+        )}
 
         <View style={styles.row}>
           {showMenu && (
@@ -48,13 +52,12 @@ export function PageHeader({ title, showMonth = true, showProButton = true, show
               style={({ pressed }) => [
                 styles.iconBtn,
                 {
-                  backgroundColor: colors.surface,
+                  backgroundColor: pressed ? colors.surfaceAlt : colors.surface,
                   borderColor: colors.border,
-                  opacity: pressed ? 0.7 : 1,
                 },
               ]}
             >
-              <Ionicons name="menu" size={20} color={colors.text} />
+              <Ionicons name="grid-outline" size={20} color={colors.primary} />
             </Pressable>
           )}
 
@@ -121,9 +124,9 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   iconBtn: {
-    width: 36,
-    height: 36,
-    borderRadius: radius.sm,
+    width: 42,
+    height: 42,
+    borderRadius: radius.md,
     borderWidth: 1,
     justifyContent: 'center',
     alignItems: 'center',

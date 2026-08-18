@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Alert, Modal } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Alert, Modal, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -57,7 +57,7 @@ export default function AdvancesScreen() {
   };
 
   const remove = (id: string) => {
-    Alert.alert(isTr ? 'Sil?' : 'Delete?', isTr ? 'Silinsin mi?' : 'Delete?', [
+    Alert.alert(isTr ? 'Sil?' : 'Delete?', isTr ? 'Bu kayıt silinsin mi?' : 'Delete this item?', [
       { text: isTr ? 'İptal' : 'Cancel', style: 'cancel' },
       { text: isTr ? 'Sil' : 'Delete', style: 'destructive', onPress: async () => {
         const list = items.filter(i => i.id !== id);
@@ -109,7 +109,7 @@ export default function AdvancesScreen() {
         <View style={{ width: 40 }} />
       </View>
       <ScrollView contentContainerStyle={{ padding: spacing.md, paddingBottom: 120 }}>
-        <LinearGradient colors={['#F97316', '#EF4444']} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={heroStyles.hero}>
+        <LinearGradient colors={[colors.primary, colors.accent]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={heroStyles.hero}>
           <Text style={heroStyles.heroLabel}>{isTr ? 'Açık Avans Bakiyesi' : 'Open Advance Balance'}</Text>
           <Text style={heroStyles.heroAmount}>₺{totals.open.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
           <Text style={heroStyles.heroSub}>{isTr ? `Kapatılan: ₺${totals.repaid.toLocaleString('tr-TR', { maximumFractionDigits: 0 })}` : `Closed: ₺${totals.repaid.toLocaleString('tr-TR', { maximumFractionDigits: 0 })}`}</Text>
@@ -143,7 +143,7 @@ export default function AdvancesScreen() {
               <Text style={{ color: colors.text, fontWeight: '600', textDecorationLine: item.repaid ? 'line-through' : 'none' }}>{item.label}</Text>
               <Text style={{ color: colors.textMuted, fontSize: 12, marginTop: 2 }}>{item.date}</Text>
             </Pressable>
-            <Text style={{ color: item.repaid ? colors.textMuted : '#F97316', fontWeight: '700', fontSize: 16 }}>₺{item.amount.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
+            <Text style={{ color: item.repaid ? colors.textMuted : colors.accent, fontWeight: '700', fontSize: 16 }}>₺{item.amount.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</Text>
             <Pressable onPress={() => remove(item.id)} style={{ marginLeft: 8, padding: 4 }}>
               <Ionicons name="trash-outline" size={18} color={colors.textMuted} />
             </Pressable>
@@ -153,6 +153,7 @@ export default function AdvancesScreen() {
 
       {/* Edit Modal */}
       <Modal visible={!!editItem} transparent animationType="slide" onRequestClose={() => setEditItem(null)}>
+        <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <Pressable style={styles.modalOverlay} onPress={() => setEditItem(null)}>
           <Pressable style={[styles.modalCard, { backgroundColor: colors.bg2 }]} onPress={e => e.stopPropagation()}>
             <Text style={[styles.modalTitle, { color: colors.text }]}>{isTr ? 'Avans Düzenle' : 'Edit Advance'}</Text>
@@ -174,6 +175,7 @@ export default function AdvancesScreen() {
             </View>
           </Pressable>
         </Pressable>
+        </KeyboardAvoidingView>
       </Modal>
     </SafeAreaView>
   );

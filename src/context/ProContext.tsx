@@ -65,6 +65,7 @@ interface ProContextValue {
 const ProContext = createContext<ProContextValue | null>(null);
 
 export function ProProvider({ children }: { children: React.ReactNode }) {
+  // REAL entitlement state — identical to original, never seeded/mutated by the dev bypass.
   const [isPro, setIsPro] = useState(false);
   const [ready, setReady] = useState(false);
   const [product, setProduct] = useState<ProductInfo | null>(null);

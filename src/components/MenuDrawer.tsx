@@ -1,7 +1,9 @@
 import React, { useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, Pressable, SafeAreaView, ScrollView, TextInput, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, Pressable, ScrollView, TextInput, Dimensions } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, { useSharedValue, useAnimatedStyle, withTiming, Easing } from 'react-native-reanimated';
 import { Ionicons } from '@expo/vector-icons';
+import Constants from 'expo-constants';
 import { getColors, radius, spacing } from '../theme';
 import { useApp } from '../context/AppContext';
 
@@ -19,6 +21,8 @@ export interface MenuGroup {
   subtitle?: string;
   icon: string;
   children: MenuLeaf[];
+  /** false = always-expanded static section (no accordion/chevron). Defaults to true (accordion). */
+  collapsible?: boolean;
 }
 
 export type MenuNode = MenuLeaf | MenuGroup;
@@ -36,14 +40,24 @@ function isGroup(n: MenuNode): n is MenuGroup {
 }
 
 export function MenuDrawer({ visible, onClose, items }: MenuDrawerProps) {
-  const { theme, language } = useApp();
+  const { theme, language, settings, workplaces, activeWorkplaceId } = useApp();
   const colors = getColors(theme);
   const styles = getStyles(colors);
   const isTr = language === 'tr';
 
+  const appVersion = Constants.expoConfig?.version ?? '';
+  const fullName = `${settings?.firstName ?? ''} ${settings?.lastName ?? ''}`.trim();
+  const activeWorkplace = (workplaces ?? []).find(w => w.id === activeWorkplaceId) ?? null;
+  const showIdentityBlock = !!fullName || !!activeWorkplace;
+
   const translateX = useSharedValue(0);
   const opacity = useSharedValue(0);
-  const [openId, setOpenId] = useState<string | null>(null);
+  // Default-open the first accordion group (today: ARAÇLAR) so its contents
+  // are visible as soon as the drawer opens, instead of starting collapsed.
+  const [openId, setOpenId] = useState<string | null>(() => {
+    const firstAccordion = items.find((i) => isGroup(i) && i.collapsible !== false) as MenuGroup | undefined;
+    return firstAccordion?.id ?? null;
+  });
   const [query, setQuery] = useState('');
 
   useEffect(() => {
@@ -102,11 +116,42 @@ export function MenuDrawer({ visible, onClose, items }: MenuDrawerProps) {
       <Animated.View style={[styles.drawer, { backgroundColor: colors.bg }, drawerAnimatedStyle]}>
         <SafeAreaView style={{ flex: 1 }}>
           <View style={styles.header}>
-            <Text style={styles.appName}>Mesai+</Text>
+            <View style={{ flex: 1, minWidth: 0 }}>
+              <Text style={styles.wordmark} numberOfLines={1}>
+                <Text style={styles.wordmarkMesai}>Mesai</Text>
+                <Text style={styles.wordmarkPlus}>+</Text>
+              </Text>
+              <Text style={styles.brandTagline} numberOfLines={1}>
+                {isTr ? 'Çalışma & Finans' : 'Work & Finance'}
+              </Text>
+            </View>
             <Pressable onPress={onClose} style={styles.closeButton} hitSlop={10}>
               <Ionicons name="close" size={22} color={colors.text} />
             </Pressable>
           </View>
+
+          {showIdentityBlock && (
+            <View style={styles.identityBlock}>
+              {!!fullName && (
+                <Text style={styles.identityName} numberOfLines={1}>{fullName}</Text>
+              )}
+              <View style={styles.identityRow}>
+                {activeWorkplace ? (
+                  <View
+                    style={[
+                      styles.workplacePill,
+                      { backgroundColor: activeWorkplace.color + '1F', borderColor: activeWorkplace.color + '55' },
+                    ]}
+                  >
+                    <Text style={styles.workplaceEmoji}>{activeWorkplace.emoji}</Text>
+                    <Text style={styles.workplaceName} numberOfLines={1}>{activeWorkplace.name}</Text>
+                  </View>
+                ) : (
+                  <View style={{ flex: 1 }} />
+                )}
+              </View>
+            </View>
+          )}
 
           <View style={styles.searchWrap}>
             <Ionicons name="search" size={16} color={colors.textMuted} />
@@ -136,6 +181,16 @@ export function MenuDrawer({ visible, onClose, items }: MenuDrawerProps) {
                 {regular.map((node) => {
                   if (!isGroup(node)) return renderLeaf(node as MenuLeaf);
                   const g = node as MenuGroup;
+                  if (g.collapsible === false) {
+                    return (
+                      <View key={g.id}>
+                        <View style={styles.sectionLabelRow}>
+                          <Text style={styles.sectionLabel} numberOfLines={1}>{g.label}</Text>
+                        </View>
+                        {g.children.map(c => renderLeaf(c, false))}
+                      </View>
+                    );
+                  }
                   const open = openId === g.id;
                   return (
                     <View key={g.id}>
@@ -185,7 +240,7 @@ export function MenuDrawer({ visible, onClose, items }: MenuDrawerProps) {
           </ScrollView>
 
           <View style={[styles.footer, { borderTopColor: colors.border }]}>
-            <Text style={styles.footerText}>Mesai+ v9.1.0</Text>
+            <Text style={styles.footerText}>{appVersion ? `Mesai+ v${appVersion}` : 'Mesai+'}</Text>
           </View>
         </SafeAreaView>
       </Animated.View>
@@ -205,10 +260,36 @@ function getStyles(colors: typeof import('../theme').darkColors) {
     },
     header: {
       flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center',
-      paddingHorizontal: spacing.lg, paddingTop: spacing.md, paddingBottom: spacing.sm,
+      paddingHorizontal: spacing.lg, paddingTop: spacing.lg, paddingBottom: spacing.md,
     },
-    appName: { color: colors.text, fontSize: 22, fontWeight: '800', letterSpacing: 0.3 },
+    wordmark: { fontSize: 24, fontWeight: '900', letterSpacing: 0.2 },
+    wordmarkMesai: { color: colors.text },
+    wordmarkPlus: { color: colors.primary },
+    brandTagline: { color: colors.textMuted, fontSize: 12, fontWeight: '500', marginTop: 3 },
     closeButton: { padding: spacing.sm, marginRight: -spacing.sm },
+    identityBlock: {
+      paddingHorizontal: spacing.lg,
+      paddingBottom: spacing.sm,
+      gap: 6,
+    },
+    identityName: { color: colors.textMuted, fontSize: 13, fontWeight: '600' },
+    identityRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+    workplacePill: {
+      flexDirection: 'row', alignItems: 'center', gap: 6,
+      paddingHorizontal: 10, paddingVertical: 5,
+      borderRadius: radius.full, borderWidth: 1,
+      flexShrink: 1,
+    },
+    workplaceEmoji: { fontSize: 12 },
+    workplaceName: { color: colors.text, fontSize: 12, fontWeight: '700', flexShrink: 1 },
+    sectionLabelRow: {
+      flexDirection: 'row', alignItems: 'center', gap: 6,
+      marginHorizontal: spacing.lg, marginTop: spacing.lg + 4, marginBottom: 4,
+    },
+    sectionLabel: {
+      color: colors.textMuted, fontSize: 11, fontWeight: '700',
+      textTransform: 'uppercase', letterSpacing: 0.6,
+    },
     searchWrap: {
       flexDirection: 'row', alignItems: 'center', gap: 8,
       marginHorizontal: spacing.md, marginBottom: spacing.sm,
@@ -220,22 +301,22 @@ function getStyles(colors: typeof import('../theme').darkColors) {
     menuList: { flex: 1 },
     menuItem: {
       flexDirection: 'row', alignItems: 'center',
-      paddingHorizontal: spacing.md, paddingVertical: 10, gap: 12,
-      marginHorizontal: spacing.sm, borderRadius: radius.md,
+      paddingHorizontal: spacing.md, paddingVertical: 13, gap: 12,
+      marginHorizontal: spacing.sm, marginVertical: 1, borderRadius: radius.md,
     },
-    subItem: { paddingVertical: 8 },
+    subItem: { paddingVertical: 9 },
     menuItemPressed: { backgroundColor: colors.surface },
     groupHeader: {
       flexDirection: 'row', alignItems: 'center',
       paddingHorizontal: spacing.md, paddingVertical: 12, gap: 12,
-      marginHorizontal: spacing.sm, marginTop: 2, borderRadius: radius.md,
+      marginHorizontal: spacing.sm, marginTop: spacing.lg, borderRadius: radius.md,
     },
     groupHeaderOpen: { backgroundColor: colors.surface },
     iconContainer: {
       width: 34, height: 34, borderRadius: 10,
       backgroundColor: colors.surface, alignItems: 'center', justifyContent: 'center',
     },
-    menuLabel: { color: colors.text, fontSize: 15, fontWeight: '600', flexShrink: 1 },
+    menuLabel: { color: colors.text, fontSize: 15, fontWeight: '600', flex: 1 },
     groupSubtitle: { color: colors.textMuted, fontSize: 11, marginTop: 2 },
     groupChildren: {
       marginLeft: spacing.md + 34 + 4,
@@ -244,7 +325,7 @@ function getStyles(colors: typeof import('../theme').darkColors) {
       borderLeftWidth: 1.5, borderLeftColor: colors.border,
       paddingLeft: 8,
     },
-    sectionDivider: { height: 1, backgroundColor: colors.border, marginHorizontal: spacing.md, marginVertical: spacing.sm },
+    sectionDivider: { height: 1, backgroundColor: colors.border, marginHorizontal: spacing.md, marginVertical: spacing.md },
     emptySearch: { color: colors.textMuted, textAlign: 'center', paddingVertical: spacing.lg, fontSize: 14 },
     footer: { paddingHorizontal: spacing.lg, paddingVertical: spacing.sm, borderTopWidth: 1, alignItems: 'center' },
     footerText: { color: colors.textMuted, fontSize: 11, fontWeight: '500' },

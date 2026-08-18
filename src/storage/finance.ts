@@ -33,6 +33,11 @@ export interface Bill {
   category: 'rent' | 'utility' | 'internet' | 'phone' | 'loan' | 'subscription' | 'other';
   paidMonths: string[]; // ["2026-07"]
   createdAt: string;
+  // Optional payment-plan fields (e.g. a 12-month contract). Both undefined =
+  // legacy/indefinite recurring bill — the pre-existing behavior, unchanged.
+  // See src/utils/bill.ts for how these are safely read (never assumed present).
+  totalMonths?: number; // positive integer, e.g. 12
+  startMonth?: string; // "YYYY-MM", same standard as paidMonths entries
 }
 
 export interface Expense {
@@ -52,12 +57,50 @@ export interface SavingsGoal {
   createdAt: string;
 }
 
+export type DebtType = 'credit_card' | 'personal_loan' | 'vehicle_loan' | 'housing_loan' | 'other';
+
+export interface DebtPayment {
+  installmentNumber: number; // 1-based
+  paid: boolean;
+  paidAt?: string; // ISO string, set only when paid=true
+}
+
+export interface Debt {
+  id: string;
+  type: DebtType;
+  name: string;
+  totalAmount: number;
+  monthlyPayment: number;
+  totalInstallments: number;
+  paymentDay?: number; // 1-31
+  payments: DebtPayment[];
+  createdAt: string;
+}
+
+export type AssetCategory = 'gold' | 'currency' | 'silver' | 'other';
+
+// A single manual purchase record. Aggregates (total quantity, total cost,
+// weighted average price) are never stored — always derived from the list of
+// purchases via src/utils/asset.ts. No live pricing, no sell/realized P&L.
+export interface AssetPurchase {
+  id: string;
+  category: AssetCategory;
+  subType: string; // e.g. 'gram_altin', 'USD', 'gram_gumus', or free text for category 'other'
+  quantity: number; // grams / units / currency amount
+  unitPrice: number; // TL cost per single unit at purchase time
+  purchaseDate: string; // YYYY-MM-DD
+  note?: string;
+  createdAt: string;
+}
+
 const RECEIVABLES_KEY = 'mesai.receivables.v1';
 const ADVANCES_KEY = 'mesai.advances.v1';
 const ALLOWANCE_KEY = 'mesai.allowance.v1';
 const BILLS_KEY = 'mesai.bills.v1';
 const EXPENSES_KEY = 'mesai.expenses.v1';
 const SAVINGS_KEY = 'mesai.savings.v1';
+const DEBTS_KEY = 'mesai.debts.v1';
+const ASSET_PURCHASES_KEY = 'mesai.assetPurchases.v1';
 
 async function safeGet<T>(key: string, fb: T): Promise<T> {
   try {
@@ -115,4 +158,30 @@ export async function loadSavings(): Promise<SavingsGoal[]> {
 }
 export async function saveSavings(list: SavingsGoal[]): Promise<void> {
   await safeSet(SAVINGS_KEY, list);
+}
+
+// Builds a fresh, unpaid installment schedule for a new Debt. Pure/stateless —
+// does not read or write storage. Safe against non-positive/NaN/Infinity input.
+export function createDebtPayments(totalInstallments: number): DebtPayment[] {
+  const n = Number.isFinite(totalInstallments) ? Math.floor(totalInstallments) : 0;
+  if (n <= 0) return [];
+  const payments: DebtPayment[] = [];
+  for (let i = 1; i <= n; i++) {
+    payments.push({ installmentNumber: i, paid: false });
+  }
+  return payments;
+}
+
+export async function loadDebts(): Promise<Debt[]> {
+  return await safeGet<Debt[]>(DEBTS_KEY, []);
+}
+export async function saveDebts(list: Debt[]): Promise<void> {
+  await safeSet(DEBTS_KEY, list);
+}
+
+export async function loadAssetPurchases(): Promise<AssetPurchase[]> {
+  return await safeGet<AssetPurchase[]>(ASSET_PURCHASES_KEY, []);
+}
+export async function saveAssetPurchases(list: AssetPurchase[]): Promise<void> {
+  await safeSet(ASSET_PURCHASES_KEY, list);
 }

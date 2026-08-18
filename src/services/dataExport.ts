@@ -402,6 +402,14 @@ const BACKUP_KEYS = [
   'mesai.leave.startDate.v2',
   'mesai.leave.usedDays.v2',
   'mesai.leave.days.v2',
+  'mesai.bills.v1',
+  'mesai.expenses.v1',
+  'mesai.savings.v1',
+  'mesai.receivables.v1',
+  'mesai.advances.v1',
+  'mesai.allowance.v1',
+  'mesai.debts.v1',
+  'mesai.assetPurchases.v1',
 ];
 
 const CURRENT_BACKUP_VERSION = 1;
@@ -512,14 +520,167 @@ function isValidLeaveUsedLegacy(v: unknown): boolean {
   return isFiniteNumber(v) || (typeof v === 'string' && v.trim() !== '' && !isNaN(Number(v)));
 }
 
+// ---------- Wallet/finance field validators (structural, mirrors src/storage/finance.ts) ----------
+const BILL_CATEGORIES = new Set(['rent', 'utility', 'internet', 'phone', 'loan', 'subscription', 'other']);
+const EXPENSE_CATEGORIES = new Set(['market', 'transport', 'food', 'fun', 'health', 'other']);
+const DEBT_TYPES = new Set(['credit_card', 'personal_loan', 'vehicle_loan', 'housing_loan', 'other']);
+const ASSET_CATEGORIES = new Set(['gold', 'currency', 'silver', 'other']);
+
+function isValidBills(v: unknown): boolean {
+  if (!Array.isArray(v)) return false;
+  for (const b of v) {
+    if (!isPlainObject(b)) return false;
+    if (typeof b.id !== 'string') return false;
+    if (typeof b.label !== 'string') return false;
+    if (!isFiniteNumber(b.amount)) return false;
+    if (!isFiniteNumber(b.dueDay) || b.dueDay < 1 || b.dueDay > 31) return false;
+    if (typeof b.category !== 'string' || !BILL_CATEGORIES.has(b.category)) return false;
+    if (!Array.isArray(b.paidMonths) || b.paidMonths.some((m: unknown) => typeof m !== 'string')) return false;
+    if (typeof b.createdAt !== 'string') return false;
+    // Optional payment-plan fields — legacy backups never have these, so both
+    // are validated only when present (absence is always valid).
+    if (b.totalMonths !== undefined) {
+      if (!isFiniteNumber(b.totalMonths) || !Number.isInteger(b.totalMonths) || b.totalMonths <= 0) return false;
+    }
+    if (b.startMonth !== undefined && typeof b.startMonth !== 'string') return false;
+  }
+  return true;
+}
+
+function isValidExpenses(v: unknown): boolean {
+  if (!Array.isArray(v)) return false;
+  for (const e of v) {
+    if (!isPlainObject(e)) return false;
+    if (typeof e.id !== 'string') return false;
+    if (typeof e.label !== 'string') return false;
+    if (!isFiniteNumber(e.amount)) return false;
+    if (typeof e.category !== 'string' || !EXPENSE_CATEGORIES.has(e.category)) return false;
+    if (typeof e.date !== 'string') return false;
+    if (typeof e.createdAt !== 'string') return false;
+  }
+  return true;
+}
+
+function isValidSavings(v: unknown): boolean {
+  if (!Array.isArray(v)) return false;
+  for (const g of v) {
+    if (!isPlainObject(g)) return false;
+    if (typeof g.id !== 'string') return false;
+    if (typeof g.name !== 'string') return false;
+    if (!isFiniteNumber(g.target)) return false;
+    if (!isFiniteNumber(g.saved)) return false;
+    if (typeof g.createdAt !== 'string') return false;
+  }
+  return true;
+}
+
+function isValidReceivables(v: unknown): boolean {
+  if (!Array.isArray(v)) return false;
+  for (const r of v) {
+    if (!isPlainObject(r)) return false;
+    if (typeof r.id !== 'string') return false;
+    if (typeof r.label !== 'string') return false;
+    if (!isFiniteNumber(r.amount)) return false;
+    if (r.dueDate !== undefined && typeof r.dueDate !== 'string') return false;
+    if (typeof r.paid !== 'boolean') return false;
+    if (typeof r.createdAt !== 'string') return false;
+  }
+  return true;
+}
+
+function isValidAdvances(v: unknown): boolean {
+  if (!Array.isArray(v)) return false;
+  for (const a of v) {
+    if (!isPlainObject(a)) return false;
+    if (typeof a.id !== 'string') return false;
+    if (typeof a.label !== 'string') return false;
+    if (!isFiniteNumber(a.amount)) return false;
+    if (typeof a.date !== 'string') return false;
+    if (typeof a.repaid !== 'boolean') return false;
+    if (typeof a.createdAt !== 'string') return false;
+  }
+  return true;
+}
+
+function isValidAllowance(v: unknown): boolean {
+  if (!isPlainObject(v)) return false;
+  if (!isFiniteNumber(v.transportPerDay)) return false;
+  if (!isFiniteNumber(v.mealPerDay)) return false;
+  if (!isFiniteNumber(v.otherPerDay)) return false;
+  if (typeof v.enabled !== 'boolean') return false;
+  return true;
+}
+
+function isValidDebtPayment(p: unknown): boolean {
+  if (!isPlainObject(p)) return false;
+  if (!isFiniteNumber(p.installmentNumber) || !Number.isInteger(p.installmentNumber) || p.installmentNumber < 1) return false;
+  if (typeof p.paid !== 'boolean') return false;
+  if (p.paidAt !== undefined && typeof p.paidAt !== 'string') return false;
+  return true;
+}
+
+// Note: deliberately does NOT enforce payments.length === totalInstallments.
+// totalInstallments is a declared/display value; payments is the source of
+// truth for paid/remaining calculations. Requiring exact equality here would
+// reject otherwise-structurally-valid data over a consistency nuance no
+// consuming code depends on yet, which is stricter than this validator's
+// peers (e.g. isValidEntries) aim for.
+function isValidDebts(v: unknown): boolean {
+  if (!Array.isArray(v)) return false;
+  for (const d of v) {
+    if (!isPlainObject(d)) return false;
+    if (typeof d.id !== 'string') return false;
+    if (typeof d.type !== 'string' || !DEBT_TYPES.has(d.type)) return false;
+    if (typeof d.name !== 'string') return false;
+    if (!isFiniteNumber(d.totalAmount)) return false;
+    if (!isFiniteNumber(d.monthlyPayment)) return false;
+    if (!isFiniteNumber(d.totalInstallments) || !Number.isInteger(d.totalInstallments)) return false;
+    if (d.paymentDay !== undefined) {
+      if (!isFiniteNumber(d.paymentDay) || !Number.isInteger(d.paymentDay) || d.paymentDay < 1 || d.paymentDay > 31) return false;
+    }
+    if (typeof d.createdAt !== 'string') return false;
+    if (!Array.isArray(d.payments)) return false;
+    for (const p of d.payments) {
+      if (!isValidDebtPayment(p)) return false;
+    }
+  }
+  return true;
+}
+
+function isValidAssetPurchases(v: unknown): boolean {
+  if (!Array.isArray(v)) return false;
+  for (const a of v) {
+    if (!isPlainObject(a)) return false;
+    if (typeof a.id !== 'string') return false;
+    if (typeof a.category !== 'string' || !ASSET_CATEGORIES.has(a.category)) return false;
+    if (typeof a.subType !== 'string') return false;
+    if (!isFiniteNumber(a.quantity) || a.quantity <= 0) return false;
+    if (!isFiniteNumber(a.unitPrice) || a.unitPrice <= 0) return false;
+    if (typeof a.purchaseDate !== 'string') return false;
+    if (a.note !== undefined && typeof a.note !== 'string') return false;
+    if (typeof a.createdAt !== 'string') return false;
+  }
+  return true;
+}
+
 // Low-risk fields: if invalid, skip just that key and keep the current value
-// instead of rejecting the whole import.
+// instead of rejecting the whole import. Wallet/finance keys are included here
+// (not in the hard-fail settings/entries path) so a malformed Cüzdan field can
+// never block restoring a user's core Mesai/settings data.
 const OPTIONAL_KEY_VALIDATORS: Record<string, (v: unknown) => boolean> = {
   'mesai.language.v1': isValidLanguage,
   'mesai.theme.v1': isValidTheme,
   'mesai.leave.startDate.v2': isValidLeaveStartDate,
   'mesai.leave.days.v2': isValidLeaveDays,
   'mesai.leave.usedDays.v2': isValidLeaveUsedLegacy,
+  'mesai.bills.v1': isValidBills,
+  'mesai.expenses.v1': isValidExpenses,
+  'mesai.savings.v1': isValidSavings,
+  'mesai.receivables.v1': isValidReceivables,
+  'mesai.advances.v1': isValidAdvances,
+  'mesai.allowance.v1': isValidAllowance,
+  'mesai.debts.v1': isValidDebts,
+  'mesai.assetPurchases.v1': isValidAssetPurchases,
 };
 
 export async function exportBackup(): Promise<void> {

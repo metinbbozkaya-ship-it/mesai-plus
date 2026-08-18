@@ -34,10 +34,6 @@ export default function PrivacyScreen() {
           body: 'Yukarıdaki veriler uygulama tarafından cihazınızda saklanır. Uygulamanın bu verileri topladığı kendi bir sunucusu yoktur.',
         },
         {
-          title: 'Fiş Tarama',
-          body: 'Fiş tarama isteğe bağlı bir özelliktir. Bu özelliği kullandığınızda, taranan fiş görseli metne dönüştürülmek üzere üçüncü taraf bir OCR servisine gönderilebilir. Bu aktarım, kamera veya galeri seçimini yapmadan önce size bildirilir.',
-        },
-        {
           title: 'Yedekleme ve Dışa Aktarma',
           body: 'Verilerinizi isteğe bağlı olarak bir dosyaya yedekleyebilirsiniz. Yedek dosyası cihazınızda oluşturulur; paylaşmayı seçerseniz seçtiğiniz uygulama veya hizmete gönderilebilir.',
         },
@@ -51,11 +47,11 @@ export default function PrivacyScreen() {
         },
         {
           title: 'Veri Paylaşımı',
-          body: 'Uygulamanın kendi bir arka uç (backend) sunucusu yoktur. Fiş tarama gibi isteğe bağlı özellikleri kullandığınızda, ilgili üçüncü taraf servis (OCR servisi) yalnızca o işlem için gönderilen veriyi işleyebilir.',
+          body: 'Uygulamanın kendi bir arka uç (backend) sunucusu yoktur. Verileriniz uygulama tarafından otomatik olarak herhangi bir sunucuya veya üçüncü tarafa gönderilmez ya da paylaşılmaz. Pro üyelik satın alma işlemi sırasında, işlemi Google Play veya App Store kendi altyapısı üzerinden yürütür.',
         },
         {
           title: 'İletişim',
-          body: 'Sorularınız için: support@mesaiplus.app',
+          body: 'Sorularınız için: metardtec@gmail.com',
         },
       ]
     : [
@@ -66,10 +62,6 @@ export default function PrivacyScreen() {
         {
           title: 'Data Storage',
           body: 'The data above is stored on your device by the app. The app does not have its own server that collects this data.',
-        },
-        {
-          title: 'Receipt Scanning',
-          body: 'Receipt scanning is an optional feature. When you use it, the scanned receipt image may be sent to a third-party OCR service to be converted into text. You are notified of this before you choose the camera or gallery.',
         },
         {
           title: 'Backup and Export',
@@ -85,11 +77,11 @@ export default function PrivacyScreen() {
         },
         {
           title: 'Data Sharing',
-          body: 'The app does not have its own backend server. When you use optional features such as receipt scanning, the relevant third-party service (the OCR service) may process only the data sent for that operation.',
+          body: 'The app does not have its own backend server. Your data is not automatically sent to or shared with any server or third party. Pro membership purchases are processed by Google Play or the App Store through their own infrastructure.',
         },
         {
           title: 'Contact',
-          body: 'For questions: support@mesaiplus.app',
+          body: 'For questions: metardtec@gmail.com',
         },
       ];
 

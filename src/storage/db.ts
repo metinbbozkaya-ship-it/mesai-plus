@@ -34,12 +34,17 @@ export interface UserSettings {
   monthlyGoal?: number; // Aylık kazanç hedefi (TL)
   workplaces?: Workplace[];
   activeWorkplaceId?: string; // '' or undefined = show all
+  // Informational only — not currently consumed by any salary/overtime
+  // calculation (calculateHourlyRate uses a fixed STANDARD_MONTHLY_HOURS
+  // constant). Collected at onboarding for future use.
+  weeklyHours?: number;
 }
 
 const ENTRIES_KEY = 'mesai.entries.v1';
 const SETTINGS_KEY = 'mesai.settings.v1';
 const LANGUAGE_KEY = 'mesai.language.v1';
 const THEME_KEY = 'mesai.theme.v1';
+export const ONBOARDING_KEY = 'mesai.onboarding.done.v1';
 
 async function safeGet<T>(key: string, fallback: T): Promise<T> {
   try {
@@ -154,14 +159,42 @@ export async function saveTheme(theme: 'dark' | 'light' | 'system'): Promise<voi
 
 export async function clearAllData(): Promise<void> {
   try {
-    await Promise.all([
-      AsyncStorage.removeItem(ENTRIES_KEY),
-      AsyncStorage.removeItem(SETTINGS_KEY),
-      AsyncStorage.removeItem('mesai.leave.usedDays.v1'),
-      AsyncStorage.removeItem('mesai.leave.usedDays.v2'),
-      AsyncStorage.removeItem('mesai.leave.startDate.v2'),
-      AsyncStorage.removeItem('mesai.leave.days.v2'),
-    ]);
+    const keysToRemove = [
+      ENTRIES_KEY,
+      SETTINGS_KEY,
+      'mesai.leave.usedDays.v1',
+      'mesai.leave.usedDays.v2',
+      'mesai.leave.startDate.v2',
+      'mesai.leave.days.v2',
+      // Cüzdan (finance) verileri — src/storage/finance.ts
+      'mesai.receivables.v1',
+      'mesai.advances.v1',
+      'mesai.allowance.v1',
+      'mesai.bills.v1',
+      'mesai.expenses.v1',
+      'mesai.savings.v1',
+      'mesai.debts.v1',
+      'mesai.assetPurchases.v1',
+      // Widget'ın önbelleğe aldığı özet veri — src/widgets/widgetSync.tsx
+      'mesai.widget.data.v1',
+      // Kullanılmayan (dead route) çoklu-profil akışının bırakabileceği kalıntılar
+      'mesai.user.email.v1',
+      'mesai.google.idToken.v1',
+      // So "Tüm Verileri Sıfırla" also re-shows onboarding on next launch.
+      ONBOARDING_KEY,
+    ];
+
+    // Per-email backup snapshots (mesai.user.<email>.backup) use a dynamic
+    // key name, so they can't be listed above — find and remove them too.
+    const allKeys = await AsyncStorage.getAllKeys();
+    const backupKeys = allKeys.filter((k) => k.startsWith('mesai.user.') && k.endsWith('.backup'));
+
+    // Intentionally NOT cleared: mesai.language.v1, mesai.theme.v1,
+    // mesai.palette.v1 (app preferences, not user records) and mesai.isPro.v1
+    // (purchased entitlement cache — clearing it would falsely suggest the
+    // user lost their paid Pro status; the store, not this key, is the source
+    // of truth and it self-heals via ProContext's restore-on-mount).
+    await AsyncStorage.multiRemove([...keysToRemove, ...backupKeys]);
   } catch (e) {
     console.warn('[storage] clearAllData failed', e);
   }

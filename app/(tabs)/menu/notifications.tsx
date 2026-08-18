@@ -151,12 +151,18 @@ export default function NotificationsScreen() {
 
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }}>
-      <View style={[styles.header, { borderBottomColor: colors.border }]}>
-        <Pressable onPress={() => router.back()} style={styles.backButton}>
-          <Ionicons name="arrow-back" size={24} color={colors.text} />
+      <View style={styles.header}>
+        <Pressable
+          onPress={() => router.back()}
+          hitSlop={10}
+          style={({ pressed }) => [
+            styles.backButton,
+            { backgroundColor: colors.surface, borderColor: colors.border, opacity: pressed ? 0.6 : 1 },
+          ]}
+        >
+          <Ionicons name="arrow-back" size={20} color={colors.text} />
         </Pressable>
-        <Text style={styles.headerTitle}>{t(language, 'notifications')}</Text>
-        <View style={{ width: 40 }} />
+        <Text style={styles.headerTitle} numberOfLines={1}>{t(language, 'notifications')}</Text>
       </View>
 
       <ScrollView contentContainerStyle={styles.container}>
@@ -238,11 +244,13 @@ export default function NotificationsScreen() {
 function getStyles(colors: typeof import('../../../src/theme').darkColors) {
   return StyleSheet.create({
     header: {
-      flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-      paddingHorizontal: spacing.lg, paddingVertical: spacing.md, borderBottomWidth: 1,
+      flexDirection: 'row', alignItems: 'center', gap: 12,
+      paddingHorizontal: spacing.md, paddingTop: spacing.md, paddingBottom: spacing.sm,
     },
-    backButton: { padding: spacing.sm },
-    headerTitle: { color: colors.text, fontSize: 18, fontWeight: '700', flex: 1, textAlign: 'center' },
+    backButton: {
+      padding: 8, borderRadius: radius.full ?? 999, borderWidth: 1,
+    },
+    headerTitle: { color: colors.text, fontSize: 22, fontWeight: '800', flex: 1 },
     container: { flexGrow: 1, padding: spacing.lg, paddingBottom: spacing.xl * 2 },
     headerSection: { alignItems: 'center', marginBottom: spacing.xl, marginTop: spacing.lg },
     emoji: { fontSize: 64, marginBottom: spacing.md },

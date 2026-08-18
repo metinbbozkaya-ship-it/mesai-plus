@@ -77,7 +77,6 @@ export default function ProfileScreen() {
         ...settings,
         firstName: firstName.trim(),
         lastName: lastName.trim(),
-        email: loginEmail,
       });
       await refresh();
       setSavedFlash(true);

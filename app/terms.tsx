@@ -75,7 +75,7 @@ export default function TermsScreen() {
         },
         {
           title: '13. İletişim',
-          body: 'Sorularınız için: support@mesaiplus.app',
+          body: 'Sorularınız için: metardtec@gmail.com',
         },
       ]
     : [
@@ -129,7 +129,7 @@ export default function TermsScreen() {
         },
         {
           title: '13. Contact',
-          body: 'For questions: support@mesaiplus.app',
+          body: 'For questions: metardtec@gmail.com',
         },
       ];
 

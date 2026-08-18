@@ -206,8 +206,15 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
   const addWorkplace = useCallback(async (w: Omit<Workplace, 'id' | 'createdAt'>): Promise<Workplace | null> => {
     const now = new Date().toISOString();
     const nw: Workplace = { id: `wp_${Date.now()}_${Math.floor(Math.random() * 1000)}`, createdAt: now, ...w };
-    const list = [...(settings.workplaces ?? []), nw];
-    await persistSettingsHelper({ ...settings, workplaces: list, updatedAt: now });
+    const currentList = settings.workplaces ?? [];
+    const list = [...currentList, nw];
+    const nextSettings: UserSettings = {
+      ...settings,
+      workplaces: list,
+      activeWorkplaceId: currentList.length === 0 ? nw.id : settings.activeWorkplaceId,
+      updatedAt: now,
+    };
+    await persistSettingsHelper(nextSettings);
     return nw;
   }, [settings, persistSettingsHelper]);
 

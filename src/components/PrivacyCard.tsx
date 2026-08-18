@@ -12,10 +12,10 @@ export function PrivacyCard({ language, theme }: Props) {
   const colors = getColors(theme);
   const isTr = language === 'tr';
 
-  const title = isTr ? 'Veri Gizliliği' : 'Data Privacy';
+  const title = isTr ? 'Gizliliğiniz Önceliğimiz' : 'Your Privacy Matters';
   const body = isTr
-    ? 'Maaş ve mesai kayıtlarınız uygulama tarafından cihazınızda saklanır ve Android sistem yedeklemesine dahil edilmez. Bazı isteğe bağlı özellikler, örneğin fiş tarama, işlem için üçüncü taraf hizmetlerden yararlanabilir.'
-    : 'Your salary and work records are stored on your device by the app and are not included in Android system backups. Some optional features, such as receipt scanning, may use third-party services for processing.';
+    ? 'Mesai+, kişisel çalışma ve finans kayıtlarınızı cihazınızda yerel olarak saklar; bu veriler Android sistem yedeklemesine dahil edilmez.'
+    : 'Mesai+ stores your personal work and financial records locally on your device; this data is not included in Android system backups.';
 
   return (
     <View style={[styles.card, { backgroundColor: colors.surface, borderColor: colors.accent + '40' }]}>

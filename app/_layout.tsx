@@ -9,8 +9,8 @@ import { AppProvider, useApp } from '../src/context/AppContext';
 import { ProProvider } from '../src/context/ProContext';
 import { ToastProvider } from '../src/context/ToastContext';
 import { ErrorBoundary } from '../src/components/ErrorBoundary';
-import { BiometricLock } from '../src/components/BiometricLock';
 import { getPaperTheme, getColors } from '../src/theme';
+import { ONBOARDING_KEY } from '../src/storage/db';
 import { Platform } from 'react-native';
 
 if (Platform.OS === 'android') {
@@ -24,8 +24,6 @@ if (Platform.OS === 'android') {
     console.warn('[widget] register failed', e);
   }
 }
-
-const ONBOARDING_KEY = 'mesai.onboarding.done.v1';
 
 function RootLayoutContent() {
   const { theme, ready } = useApp();
@@ -75,7 +73,6 @@ function RootLayoutContent() {
     <PaperProvider theme={paperTheme}>
       <StatusBar style={theme === 'dark' ? 'light' : 'dark'} />
       {shouldRedirectToOnboarding && <Redirect href="/onboarding" />}
-      <BiometricLock>
       <Stack
         screenOptions={{
           headerShown: false,
@@ -96,7 +93,6 @@ function RootLayoutContent() {
           }}
         />
       </Stack>
-      </BiometricLock>
     </PaperProvider>
   );
 }

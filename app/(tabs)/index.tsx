@@ -22,7 +22,6 @@ import { GoalCard } from '../../src/components/GoalCard';
 import { AnimatedPressable } from '../../src/components/AnimatedPressable';
 import { FadeInView } from '../../src/components/FadeInView';
 import { SkeletonCard } from '../../src/components/SkeletonCard';
-import { ProBadge } from '../../src/components/ProBadge';
 import { Sparkline } from '../../src/components/Sparkline';
 import { WeeklyBarChart } from '../../src/components/WeeklyBarChart';
 import { WeeklyCalendar } from '../../src/components/WeeklyCalendar';
@@ -238,7 +237,7 @@ function HomeScreenContent() {
 
   return (
     <>
-      <PageHeader title={t(language, 'tab_home')} />
+      <PageHeader title={t(language, 'tab_home')} showTitle={false} />
       <ScrollView
         style={styles.wrap}
         contentContainerStyle={styles.content}
@@ -255,7 +254,6 @@ function HomeScreenContent() {
         <FadeInView delay={0}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, flexWrap: 'wrap' }}>
             <Text style={styles.greeting}>{greeting}</Text>
-            {isPro && <ProBadge size="md" />}
           </View>
           <Text style={styles.date}>{formatDate(today, language)}</Text>
         </FadeInView>
@@ -266,7 +264,7 @@ function HomeScreenContent() {
           accessibilityLabel={language === 'tr' ? "Bugünün mesaisini gir" : "Log today's work hours"}
         >
           <LinearGradient
-            colors={[colors.primary, colors.accent]}
+            colors={[colors.primary, colors.primaryDark]}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
             style={styles.hero}
@@ -305,6 +303,29 @@ function HomeScreenContent() {
         </FadeInView>
 
         {/* Workplace Switcher */}
+        {workplaces.length === 0 && (
+          <FadeInView delay={100} style={{ marginTop: spacing.sm }}>
+            <Pressable
+              onPress={() => router.push('/(tabs)/menu/workplaces')}
+              style={({ pressed }) => [styles.addWorkplaceCta, { opacity: pressed ? 0.85 : 1 }]}
+            >
+              <View style={[styles.addWorkplaceIcon, { backgroundColor: colors.primary + '1F' }]}>
+                <Ionicons name="business" size={18} color={colors.primary} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={styles.addWorkplaceText}>
+                  {language === 'tr'
+                    ? 'İş yeri ekleyerek kayıtlarını ayrı ayrı takip et'
+                    : 'Add a workplace to track your entries separately'}
+                </Text>
+                <Text style={styles.addWorkplaceLink}>
+                  {language === 'tr' ? '+ İlk İş Yerini Ekle' : '+ Add Your First Workplace'}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.textMuted} />
+            </Pressable>
+          </FadeInView>
+        )}
         {workplaces.length > 0 && (
           <ScrollView
             horizontal
@@ -378,7 +399,7 @@ function HomeScreenContent() {
               }
               setActiveTab('week');
             }}
-            style={[styles.tabButton, activeTab === 'week' && styles.tabButtonActive]}
+            style={[styles.tabButton, activeTab === 'week' && styles.tabButtonActive, !isPro && styles.tabButtonLocked]}
           >
             <Text style={[styles.tabLabel, activeTab === 'week' && styles.tabLabelActive]}>
               {language === 'tr' ? 'Bu Hafta' : 'This Week'}{!isPro ? ' 🔒' : ''}
@@ -414,24 +435,24 @@ function HomeScreenContent() {
             />
           ) : (
             <>
-              <View style={styles.grid}>
-                <StatCard label={t(language, 'total_hours')} value={`${monthSummary.totalHours.toFixed(1)} ${language === 'tr' ? 'sa' : 'h'}`} />
-                <StatCard label={t(language, 'your_salary')} value={formatTL(Object.values(settings?.monthlySalaries ?? {})[today.getMonth()] ?? 0)} accent={colors.primary} />
+              <View style={styles.statsGroup}>
+                <View style={styles.grid}>
+                  <StatCard label={t(language, 'total_hours')} value={`${monthSummary.totalHours.toFixed(1)} ${language === 'tr' ? 'sa' : 'h'}`} />
+                  <StatCard label={t(language, 'your_salary')} value={formatTL(Object.values(settings?.monthlySalaries ?? {})[today.getMonth()] ?? 0)} accent={colors.primary} />
+                </View>
+                <View style={styles.grid}>
+                  <StatCard label={t(language, 'overtime_pay')} value={formatTL(monthSummary.earned)} accent={colors.success} large />
+                </View>
               </View>
-              <View style={styles.grid}>
-                <StatCard label={t(language, 'overtime_pay')} value={formatTL(monthSummary.earned)} accent={colors.success} large />
-              </View>
-              {last7Days.hasData && (
-                <FadeInView delay={120}>
-                  <WeeklyBarChart
-                    weekly={last7Days.values}
-                    labels={last7Days.labels}
-                    theme={theme}
-                    language={language}
-                    title={language === 'tr' ? 'Son 7 Gün' : 'Last 7 Days'}
-                  />
-                </FadeInView>
-              )}
+              <FadeInView delay={120}>
+                <WeeklyBarChart
+                  weekly={last7Days.values}
+                  labels={last7Days.labels}
+                  theme={theme}
+                  language={language}
+                  title={language === 'tr' ? 'Son 7 Gün' : 'Last 7 Days'}
+                />
+              </FadeInView>
               <View style={{ marginTop: spacing.xs }}>
                 <GoalCard current={monthSummary.earned} />
               </View>
@@ -501,18 +522,22 @@ function HomeScreenContent() {
         <Pressable
           onPress={() => setMonthModalVisible(true)}
           disabled={isGeneratingReport}
-          style={({ pressed }) => [{ opacity: pressed || isGeneratingReport ? 0.6 : 0.8, marginTop: spacing.sm }]}
+          style={({ pressed }) => [
+            {
+              marginTop: spacing.sm,
+              opacity: pressed || isGeneratingReport ? 0.85 : 1,
+              backgroundColor: colors.primary,
+              borderRadius: radius.md,
+              padding: spacing.sm + 4,
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: spacing.sm,
+            },
+          ]}
         >
-          <LinearGradient
-            colors={[colors.accent, colors.primary]}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={{ borderRadius: radius.md, padding: spacing.sm + 4, flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}
-          >
-            <Ionicons name="document-text" size={20} color="#fff" />
-            <Text style={{ flex: 1, color: '#fff', fontSize: 15, fontWeight: '700' }}>{language === 'tr' ? 'Rapor Gönder' : 'Export Report'}</Text>
-            <Ionicons name="chevron-forward" size={18} color="#fff" />
-          </LinearGradient>
+          <Ionicons name="document-text" size={20} color="#fff" />
+          <Text style={{ flex: 1, color: '#fff', fontSize: 15, fontWeight: '700' }}>{language === 'tr' ? 'Rapor Gönder' : 'Export Report'}</Text>
+          <Ionicons name="chevron-forward" size={18} color="#fff" />
         </Pressable>
       </ScrollView>
 
@@ -567,15 +592,31 @@ function getStyles(colors: typeof import('../../src/theme').darkColors) {
     content: { padding: spacing.md, paddingBottom: spacing.xl },
     greeting: { color: colors.text, fontSize: 28, fontWeight: '800', letterSpacing: -0.5 },
     date: { color: colors.textMuted, fontSize: 13, marginTop: 4, fontWeight: '500' },
+    addWorkplaceCta: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      gap: spacing.sm,
+      backgroundColor: colors.surface,
+      borderRadius: radius.lg,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: spacing.sm + 2,
+    },
+    addWorkplaceIcon: {
+      width: 36, height: 36, borderRadius: radius.sm,
+      justifyContent: 'center', alignItems: 'center',
+    },
+    addWorkplaceText: { color: colors.textMuted, fontSize: 12, fontWeight: '500' },
+    addWorkplaceLink: { color: colors.primary, fontSize: 13, fontWeight: '700', marginTop: 2 },
     hero: {
       borderRadius: radius.xl,
       padding: spacing.lg,
       overflow: 'hidden',
       shadowColor: colors.primary,
-      shadowOpacity: 0.35,
-      shadowRadius: 16,
-      shadowOffset: { width: 0, height: 8 },
-      elevation: 8,
+      shadowOpacity: 0.18,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 4,
     },
     heroHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: spacing.sm },
     heroTitle: { color: '#fff', fontSize: 11, fontWeight: '800', opacity: 0.85, textTransform: 'uppercase', letterSpacing: 1.2 },
@@ -595,12 +636,24 @@ function getStyles(colors: typeof import('../../src/theme').darkColors) {
       borderColor: 'rgba(255,255,255,0.3)',
     },
     heroBtnText: { color: '#fff', fontWeight: '700', fontSize: 13 },
-    tabContainer: { flexDirection: 'row', marginTop: spacing.sm, marginBottom: spacing.sm, gap: spacing.sm, borderBottomWidth: 1, borderBottomColor: colors.border },
-    tabButton: { flex: 1, paddingVertical: spacing.sm, alignItems: 'center', borderBottomWidth: 2, borderBottomColor: 'transparent' },
-    tabButtonActive: { borderBottomColor: colors.accent },
+    tabContainer: {
+      flexDirection: 'row',
+      marginTop: spacing.sm,
+      marginBottom: spacing.md,
+      gap: 4,
+      backgroundColor: colors.surface,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      borderColor: colors.border,
+      padding: 4,
+    },
+    tabButton: { flex: 1, paddingVertical: spacing.sm - 2, alignItems: 'center', borderRadius: radius.sm },
+    tabButtonActive: { backgroundColor: colors.bg },
+    tabButtonLocked: { opacity: 0.55 },
     tabLabel: { color: colors.textMuted, fontSize: 13, fontWeight: '700' },
-    tabLabelActive: { color: colors.accent },
-    grid: { flexDirection: 'row', gap: spacing.xs, marginBottom: spacing.xs },
+    tabLabelActive: { color: colors.primary },
+    statsGroup: { gap: spacing.xs, marginBottom: spacing.xs },
+    grid: { flexDirection: 'row', gap: spacing.xs },
     monthList: { marginTop: spacing.sm },
     monthItem: {
       backgroundColor: colors.surface,

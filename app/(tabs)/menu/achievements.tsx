@@ -65,7 +65,7 @@ export default function AchievementsScreen() {
       >
         {/* Streak Hero */}
         <LinearGradient
-          colors={['#F97316', '#EF4444']}
+          colors={[colors.warning, colors.danger]}
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 1 }}
           style={styles.streakHero}
@@ -111,7 +111,7 @@ export default function AchievementsScreen() {
           return (
             <View key={cat} style={{ marginTop: spacing.md }}>
               <View style={styles.catHeader}>
-                <Ionicons name={meta.icon as any} size={16} color={colors.accent} />
+                <Ionicons name={meta.icon as any} size={16} color={colors.primary} />
                 <Text style={styles.catTitle}>
                   {language === 'tr' ? meta.tr : meta.en}
                 </Text>
@@ -159,7 +159,7 @@ function ProgressRing({ pct, colors }: { pct: number; colors: ReturnType<typeof 
           cx={size / 2}
           cy={size / 2}
           r={r}
-          stroke={colors.accent}
+          stroke={colors.primary}
           strokeWidth={stroke}
           fill="none"
           strokeDasharray={circumference}

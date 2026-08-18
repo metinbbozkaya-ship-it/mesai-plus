@@ -146,7 +146,7 @@ export default function EntryScreen() {
 
   return (
     <View style={[styles.root, { backgroundColor: colors.bg }]}>
-      <PageHeader title={t(language, 'tab_entry')} />
+      <PageHeader title={t(language, 'tab_entry')} showTitle={false} />
       <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
         {/* Calendar */}
         <CalendarPicker
@@ -230,10 +230,10 @@ export default function EntryScreen() {
               <View style={styles.dayCardActions}>
                 <Pressable
                   onPress={() => { haptic(); setShowModal(true); }}
-                  style={[styles.dayActionBtn, { backgroundColor: colors.accent + '15' }]}
+                  style={[styles.dayActionBtn, { backgroundColor: colors.primary + '15' }]}
                 >
-                  <Ionicons name="pencil" size={14} color={colors.accent} />
-                  <Text style={[styles.dayActionText, { color: colors.accent }]}>
+                  <Ionicons name="pencil" size={14} color={colors.primary} />
+                  <Text style={[styles.dayActionText, { color: colors.primary }]}>
                     {isTr ? 'Düzenle' : 'Edit'}
                   </Text>
                 </Pressable>
@@ -278,7 +278,7 @@ export default function EntryScreen() {
       {/* FAB */}
       <Pressable
         onPress={openAddEntry}
-        style={({ pressed }) => [styles.fab, { backgroundColor: colors.accent, transform: [{ scale: pressed ? 0.92 : 1 }] }]}
+        style={({ pressed }) => [styles.fab, { backgroundColor: colors.primary, transform: [{ scale: pressed ? 0.92 : 1 }] }]}
       >
         <Ionicons name="add" size={28} color="#fff" />
       </Pressable>
@@ -311,6 +311,8 @@ const TIME_OPTIONS = Array.from({ length: 24 }, (_, i) => {
   const m = val % 1 === 0.5 ? '30' : '00';
   return { label: `${String(h).padStart(2, '0')}:${m}`, value: val };
 });
+// Reuses the existing time picker's own max value — no new limit introduced.
+const MAX_ENTRY_HOURS = TIME_OPTIONS[TIME_OPTIONS.length - 1].value;
 
 // ─── Entry Modal ────────────────────────────────────────────────
 const MULTIPLIER_OPTIONS = [0.5, 1.0, 1.5, 2.0] as const;
@@ -369,6 +371,14 @@ function EntryModal({
     }
   }, [visible, existingEntry, defaultMultiplier]);
 
+  const quickAddHours = (delta: number) => {
+    if (saving || (activeTab === 'normal' && isAbsence)) return;
+    const current = parseFloat(hours) || 0;
+    const next = Math.min(MAX_ENTRY_HOURS, Math.max(0, current + delta));
+    setHours(next.toString());
+    if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+  };
+
   const earningPreview = useMemo(() => {
     const h = parseFloat(hours) || 0;
     if (activeTab === 'deduction') {
@@ -404,13 +414,13 @@ function EntryModal({
 
   return (
     <Modal visible={visible} animationType="slide" onRequestClose={onClose} presentationStyle="fullScreen">
-      <View style={styles.overlay}>
+      <SafeAreaView edges={['top']} style={styles.overlay}>
         <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
           <View style={styles.sheet}>
             <ScrollView showsVerticalScrollIndicator={false} contentContainerStyle={{ paddingBottom: 120 }}>
               {/* Gradient Hero Header */}
               <LinearGradient
-                colors={[colors.primary, colors.accent]}
+                colors={[colors.primary, colors.primaryDark]}
                 start={{ x: 0, y: 0 }}
                 end={{ x: 1, y: 1 }}
                 style={styles.heroHeader}
@@ -448,17 +458,20 @@ function EntryModal({
                   </View>
                 </View>
                 {workplaces.length > 0 && (
-                  <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 12 }} contentContainerStyle={{ gap: 6 }}>
-                    {workplaces.map(w => {
-                      const active = (activeWorkplaceId || workplaces[0]?.id) === w.id;
-                      return (
-                        <Pressable key={w.id} onPress={() => setActiveWorkplaceId(w.id)} style={[styles.wpPill, active && styles.wpPillActive]}>
-                          <Ionicons name="business-outline" size={12} color="#fff" />
-                          <Text style={styles.heroBadgeText}>{w.name}</Text>
-                        </Pressable>
-                      );
-                    })}
-                  </ScrollView>
+                  <View style={{ marginTop: 14 }}>
+                    <Text style={styles.heroPreviewLabel}>{isTr ? 'İş Yeri' : 'Workplace'}</Text>
+                    <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginTop: 6 }} contentContainerStyle={{ gap: 8 }}>
+                      {workplaces.map(w => {
+                        const active = (activeWorkplaceId || workplaces[0]?.id) === w.id;
+                        return (
+                          <Pressable key={w.id} onPress={() => setActiveWorkplaceId(w.id)} style={[styles.wpPill, active && styles.wpPillActive]}>
+                            <Ionicons name="business-outline" size={12} color="#fff" />
+                            <Text style={styles.heroBadgeText}>{w.name}</Text>
+                          </Pressable>
+                        );
+                      })}
+                    </ScrollView>
+                  </View>
                 )}
               </LinearGradient>
 
@@ -513,9 +526,31 @@ function EntryModal({
                 </View>
               </Pressable>
 
+              {/* Quick Add Chips */}
+              <View style={styles.quickAddRow}>
+                {[1, 2, 3].map((n) => {
+                  const quickDisabled = saving || (activeTab === 'normal' && isAbsence);
+                  return (
+                    <Pressable
+                      key={n}
+                      onPress={() => quickAddHours(n)}
+                      disabled={quickDisabled}
+                      style={[
+                        styles.quickAddChip,
+                        { backgroundColor: colors.surface, borderColor: colors.border, opacity: quickDisabled ? 0.5 : 1 },
+                      ]}
+                    >
+                      <Text style={[styles.quickAddText, { color: colors.primary }]}>
+                        +{n} {isTr ? 'saat' : 'hr'}
+                      </Text>
+                    </Pressable>
+                  );
+                })}
+              </View>
+
               {/* Time Picker Bottom Sheet */}
               <Modal visible={showTimePicker} transparent animationType="slide" onRequestClose={() => setShowTimePicker(false)}>
-                <Pressable style={styles.overlay} onPress={() => setShowTimePicker(false)}>
+                <Pressable style={styles.pickerOverlay} onPress={() => setShowTimePicker(false)}>
                   <Pressable style={[styles.pickerSheet, { backgroundColor: colors.bg }]} onPress={(e) => e.stopPropagation()}>
                     <View style={[styles.handle, { backgroundColor: colors.textDim }]} />
                     <Text style={[styles.pickerTitle, { color: colors.text }]}>
@@ -540,13 +575,13 @@ function EntryModal({
                             }}
                             style={[
                               styles.pickerItem,
-                              { borderColor: isSelected ? colors.accent : 'transparent' },
-                              isSelected && { backgroundColor: colors.accent + '18' },
+                              { borderColor: isSelected ? colors.primary : 'transparent' },
+                              isSelected && { backgroundColor: colors.primary + '18' },
                             ]}
                           >
                             <Text style={[
                               styles.pickerItemText,
-                              { color: isSelected ? colors.accent : colors.text },
+                              { color: isSelected ? colors.primary : colors.text },
                               isSelected && { fontWeight: '800' },
                             ]}>
                               {opt.label}
@@ -570,15 +605,9 @@ function EntryModal({
                           setShowTimePicker(false);
                           if (Platform.OS !== 'web') Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                         }}
+                        style={[styles.pickerConfirmBtn, { backgroundColor: colors.primary }]}
                       >
-                        <LinearGradient
-                          colors={[colors.primary, colors.accent] as const}
-                          start={{ x: 0, y: 0 }}
-                          end={{ x: 1, y: 0 }}
-                          style={styles.pickerConfirmBtn}
-                        >
-                          <Text style={styles.pickerConfirmText}>{isTr ? 'Seç' : 'Select'}</Text>
-                        </LinearGradient>
+                        <Text style={styles.pickerConfirmText}>{isTr ? 'Seç' : 'Select'}</Text>
                       </Pressable>
                     </View>
                   </Pressable>
@@ -600,13 +629,13 @@ function EntryModal({
                       }}
                       style={[
                         styles.multiplierBtn,
-                        { borderColor: selectedMultiplier === m ? colors.accent : colors.border },
-                        selectedMultiplier === m && { backgroundColor: colors.accent + '22' },
+                        { borderColor: selectedMultiplier === m ? colors.primary : colors.border },
+                        selectedMultiplier === m && { backgroundColor: colors.primary + '22' },
                       ]}
                     >
                       <Text style={[
                         styles.multiplierText,
-                        { color: selectedMultiplier === m ? colors.accent : colors.text },
+                        { color: selectedMultiplier === m ? colors.primary : colors.text },
                         selectedMultiplier === m && { fontWeight: '800' },
                       ]}>
                         ×{m.toFixed(1)}
@@ -614,7 +643,13 @@ function EntryModal({
                     </Pressable>
                   ))}
                 </View>
-                {selectedMultiplier !== defaultMultiplier && (
+                {selectedMultiplier === defaultMultiplier ? (
+                  <Text style={[styles.multiplierHint, { color: colors.textMuted }]}>
+                    ℹ️ {isTr
+                      ? `${getDayTypeLabel(dayType)} için varsayılan oran: ×${defaultMultiplier.toFixed(1)}`
+                      : `Default rate for ${getDayTypeLabel(dayType)}: ×${defaultMultiplier.toFixed(1)}`}
+                  </Text>
+                ) : (
                   <Text style={[styles.multiplierHint, { color: colors.textMuted }]}>
                     ℹ️ {isTr ? `Varsayılan: ×${defaultMultiplier.toFixed(1)} (${getDayTypeLabel(dayType)})` : `Default: ×${defaultMultiplier.toFixed(1)} (${getDayTypeLabel(dayType)})`}
                   </Text>
@@ -630,9 +665,9 @@ function EntryModal({
                   <Ionicons
                     name={isAbsence ? 'checkmark-circle' : 'ellipse-outline'}
                     size={22}
-                    color={isAbsence ? colors.accent : colors.textMuted}
+                    color={isAbsence ? colors.primary : colors.textMuted}
                   />
-                  <Text style={[styles.absenceLabel, { color: isAbsence ? colors.accent : colors.text }]}>
+                  <Text style={[styles.absenceLabel, { color: isAbsence ? colors.primary : colors.text }]}>
                     {t(language, 'absence')}
                   </Text>
                 </Pressable>
@@ -642,24 +677,17 @@ function EntryModal({
               <Pressable
                 onPress={onSave}
                 disabled={saving}
-                style={({ pressed }) => [{ opacity: pressed || saving ? 0.85 : 1, transform: [{ scale: pressed ? 0.98 : 1 }], marginTop: spacing.sm }]}
+                style={({ pressed }) => [styles.saveBtn, { backgroundColor: colors.primary, opacity: pressed || saving ? 0.85 : 1, transform: [{ scale: pressed ? 0.98 : 1 }], marginTop: spacing.sm }]}
               >
-                <LinearGradient
-                  colors={[colors.primary, colors.accent]}
-                  start={{ x: 0, y: 0 }}
-                  end={{ x: 1, y: 1 }}
-                  style={styles.saveBtn}
-                >
-                  <Ionicons name={existingEntry ? 'pencil' : 'save'} color="#fff" size={18} />
-                  <Text style={styles.saveBtnText}>
-                    {existingEntry ? (isTr ? 'Güncelle' : 'Update') : (isTr ? 'Kaydet' : 'Save')}
-                  </Text>
-                </LinearGradient>
+                <Ionicons name={existingEntry ? 'pencil' : 'save'} color="#fff" size={18} />
+                <Text style={styles.saveBtnText}>
+                  {existingEntry ? (isTr ? 'Güncelle' : 'Update') : (isTr ? 'Kaydet' : 'Save')}
+                </Text>
               </Pressable>
             </ScrollView>
           </View>
         </KeyboardAvoidingView>
-      </View>
+      </SafeAreaView>
     </Modal>
   );
 }
@@ -668,30 +696,30 @@ function EntryModal({
 function getStyles(colors: any) {
   return StyleSheet.create({
     root: { flex: 1 },
-    content: { padding: spacing.md, paddingBottom: 100, gap: spacing.sm },
+    content: { padding: spacing.md, paddingBottom: 100, gap: spacing.xs },
     // Summary Card
     summaryCard: {
       borderRadius: radius.lg,
-      padding: spacing.md,
+      padding: spacing.sm,
       borderWidth: 1,
       alignItems: 'center',
-      gap: 6,
+      gap: 2,
     },
     summaryDateRange: { fontSize: 11, fontWeight: '600', letterSpacing: 0.3 },
-    summaryTotal: { fontSize: 28, fontWeight: '900', letterSpacing: -0.5 },
+    summaryTotal: { fontSize: 26, fontWeight: '900', letterSpacing: -0.5 },
     summaryRow: {
       flexDirection: 'row',
       alignItems: 'center',
-      marginTop: spacing.sm,
+      marginTop: 4,
       width: '100%',
     },
     summaryItem: { flex: 1, alignItems: 'center' },
     summaryItemLabel: { fontSize: 10, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.3 },
     summaryItemValue: { fontSize: 14, fontWeight: '700', marginTop: 2 },
-    summaryDivider: { width: 1, height: 28, marginHorizontal: 4 },
+    summaryDivider: { width: 1, height: 22, marginHorizontal: 4 },
     // Daily section
-    dailySection: { marginTop: spacing.sm },
-    dailyTitle: { fontSize: 16, fontWeight: '700', marginBottom: spacing.sm },
+    dailySection: { marginTop: 4 },
+    dailyTitle: { fontSize: 16, fontWeight: '700', marginBottom: 6 },
     dayCard: {
       borderRadius: radius.lg,
       padding: spacing.md,
@@ -746,9 +774,9 @@ function getStyles(colors: any) {
       alignItems: 'center',
       shadowColor: '#000',
       shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.3,
-      shadowRadius: 8,
-      elevation: 8,
+      shadowOpacity: 0.2,
+      shadowRadius: 6,
+      elevation: 6,
       zIndex: 100,
     },
   });
@@ -761,6 +789,11 @@ function getModalStyles(colors: any) {
       flex: 1,
       backgroundColor: colors.bg,
     },
+    pickerOverlay: {
+      flex: 1,
+      backgroundColor: 'rgba(0,0,0,0.5)',
+      justifyContent: 'flex-end',
+    },
     sheet: {
       flex: 1,
       paddingHorizontal: spacing.lg,
@@ -771,21 +804,21 @@ function getModalStyles(colors: any) {
       marginHorizontal: 0,
       marginTop: Platform.select({ ios: 8, default: 4 }),
       paddingHorizontal: spacing.lg,
-      paddingTop: spacing.lg,
-      paddingBottom: spacing.lg,
-      borderRadius: 32,
-      marginBottom: spacing.lg,
+      paddingTop: spacing.md,
+      paddingBottom: spacing.md,
+      borderRadius: 28,
+      marginBottom: spacing.md,
       shadowColor: colors.primary,
-      shadowOpacity: 0.35,
-      shadowRadius: 20,
-      shadowOffset: { width: 0, height: 8 },
-      elevation: 8,
+      shadowOpacity: 0.2,
+      shadowRadius: 10,
+      shadowOffset: { width: 0, height: 4 },
+      elevation: 5,
     },
     heroTopRow: {
       flexDirection: 'row',
       alignItems: 'center',
       justifyContent: 'space-between',
-      marginBottom: spacing.md,
+      marginBottom: spacing.sm,
     },
     heroCloseBtn: {
       width: 36,
@@ -807,10 +840,10 @@ function getModalStyles(colors: any) {
     },
     heroPreviewValue: {
       color: '#fff',
-      fontSize: 34,
+      fontSize: 28,
       fontWeight: '800',
       letterSpacing: -0.8,
-      marginTop: 4,
+      marginTop: 2,
     },
     heroBadgeRow: {
       flexDirection: 'row',
@@ -825,8 +858,8 @@ function getModalStyles(colors: any) {
       borderRadius: 999,
     },
     heroBadgeText: { color: '#fff', fontSize: 11, fontWeight: '700' },
-    wpPill: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.12)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.2)', paddingHorizontal: 10, paddingVertical: 5, borderRadius: 999 },
-    wpPillActive: { backgroundColor: 'rgba(255,255,255,0.3)', borderColor: 'rgba(255,255,255,0.6)' },
+    wpPill: { flexDirection: 'row', alignItems: 'center', gap: 4, backgroundColor: 'rgba(255,255,255,0.14)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.28)', paddingHorizontal: 12, paddingVertical: 7, borderRadius: 999 },
+    wpPillActive: { backgroundColor: 'rgba(255,255,255,0.38)', borderColor: 'rgba(255,255,255,0.75)' },
     handle: {
       width: 40,
       height: 4,
@@ -913,8 +946,25 @@ function getModalStyles(colors: any) {
       borderBottomColor: 'transparent',
     },
     pickerTriggerText: {
-      fontSize: 22,
+      fontSize: 18,
       fontWeight: '800',
+    },
+    // Quick add chips
+    quickAddRow: {
+      flexDirection: 'row',
+      gap: 8,
+      marginBottom: spacing.md,
+    },
+    quickAddChip: {
+      flex: 1,
+      paddingVertical: 10,
+      borderRadius: radius.md,
+      borderWidth: 1,
+      alignItems: 'center',
+    },
+    quickAddText: {
+      fontSize: 13,
+      fontWeight: '700',
     },
     // Picker sheet
     pickerSheet: {

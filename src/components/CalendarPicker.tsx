@@ -187,18 +187,18 @@ export function CalendarPicker({
 const styles = StyleSheet.create({
   container: {
     borderRadius: 12,
-    padding: 12,
-    marginVertical: 12,
+    padding: 6,
+    marginTop: 6,
   },
   monthNav: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: 6,
     paddingHorizontal: 4,
   },
   navButton: {
-    padding: 8,
+    padding: 6,
   },
   monthTitle: {
     fontSize: 16,
@@ -208,7 +208,7 @@ const styles = StyleSheet.create({
   headerRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    marginBottom: 12,
+    marginBottom: 4,
   },
   dayHeader: {
     flex: 1,
@@ -225,10 +225,10 @@ const styles = StyleSheet.create({
   },
   dayButton: {
     width: '14.28%',
-    aspectRatio: 1,
+    aspectRatio: 1.3,
     justifyContent: 'center',
     alignItems: 'center',
-    marginVertical: 4,
+    marginVertical: 1,
     borderRadius: 8,
   },
   dayText: {

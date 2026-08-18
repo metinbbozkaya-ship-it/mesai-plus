@@ -33,7 +33,7 @@ export function MesaiWidget({
       style={{
         height: 'match_parent',
         width: 'match_parent',
-        backgroundColor: '#0A0A0A',
+        backgroundColor: '#0B1220',
         borderRadius: 24,
         padding: 16,
         flexDirection: 'column',
@@ -56,13 +56,13 @@ export function MesaiWidget({
               width: 8,
               height: 8,
               borderRadius: 4,
-              backgroundColor: '#8B5CF6',
+              backgroundColor: '#3B82F6',
               marginRight: 6,
             }}
           />
           <TextWidget
             text="Mesai+"
-            style={{ fontSize: 12, color: '#8B5CF6', fontWeight: '700' }}
+            style={{ fontSize: 12, color: '#3B82F6', fontWeight: '700' }}
           />
         </FlexWidget>
         <TextWidget
@@ -102,7 +102,7 @@ export function MesaiWidget({
                 width: `${pctClamped}%` as any,
                 height: 4,
                 borderRadius: 2,
-                backgroundColor: '#22D3EE',
+                backgroundColor: '#3B82F6',
               }}
             />
           </FlexWidget>

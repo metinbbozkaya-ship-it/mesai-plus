@@ -117,6 +117,15 @@ const MENU_ITEMS: MenuItem[] = [
   },
 ];
 
+// Presentation-only grouping — does not affect MENU_ITEMS, handleSelect, or routing.
+const CATEGORIES: { id: string; labelTr: string; labelEn: string; items: CalculatorType[] }[] = [
+  { id: 'salary_payroll', labelTr: 'Maaş & Bordro', labelEn: 'Salary & Payroll', items: ['salary', 'payroll'] },
+  { id: 'labor_law', labelTr: 'İş Hukuku', labelEn: 'Labor Law', items: ['severance', 'notice', 'unemployment'] },
+  { id: 'leave', labelTr: 'İzin', labelEn: 'Leave', items: ['leave'] },
+  { id: 'finance', labelTr: 'Finans', labelEn: 'Finance', items: ['receivables', 'advances', 'allowances'] },
+];
+const CARD_ORDER: CalculatorType[] = CATEGORIES.flatMap(c => c.items);
+
 export default function CalculateScreen() {
   const navigation = useNavigation<any>();
   const router = useRouter();
@@ -180,7 +189,7 @@ export default function CalculateScreen() {
 
   return (
     <View style={[styles.container, { backgroundColor: colors.bg }]}>
-      <PageHeader title={language === 'tr' ? 'Hesapla' : 'Calculate'} />
+      <PageHeader title={language === 'tr' ? 'Hesapla' : 'Calculate'} showTitle={false} />
       <ScrollView contentContainerStyle={styles.menuContent} showsVerticalScrollIndicator={false}>
         <LegalDataBanner />
         <Text style={styles.pageSubtitle}>
@@ -189,43 +198,52 @@ export default function CalculateScreen() {
             : 'Choose the tool that fits your needs'}
         </Text>
 
-        <View style={styles.grid}>
-          {MENU_ITEMS.map((item, idx) => {
-            const locked = isProFeature(item.id) && !isPro;
-            return (
-              <FadeInView key={item.id} delay={idx * 70}>
-              <AnimatedPressable
-                onPress={() => handleSelect(item.id)}
-                style={[
-                  styles.menuCard,
-                  { backgroundColor: colors.surface },
-                ]}
-              >
-                <View style={[styles.menuIconContainer, { backgroundColor: item.color + '18' }]}>
-                  <Ionicons name={item.icon as any} size={22} color={item.color} />
-                </View>
-                <View style={{ flex: 1 }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
-                    <Text style={styles.menuCardTitle}>
-                      {language === 'tr' ? item.titleTr : item.titleEn}
-                    </Text>
-                    {isProFeature(item.id) && (
-                      <View style={[styles.proBadge, { backgroundColor: locked ? colors.accent + '22' : colors.accent }]}>
-                        <Ionicons name={locked ? 'lock-closed' : 'diamond'} size={9} color={locked ? colors.accent : '#fff'} />
-                        <Text style={[styles.proBadgeText, { color: locked ? colors.accent : '#fff' }]}>PRO</Text>
-                      </View>
-                    )}
-                  </View>
-                  <Text style={styles.menuCardDesc}>
-                    {language === 'tr' ? item.descTr : item.descEn}
-                  </Text>
-                </View>
-                <Ionicons name={locked ? 'lock-closed' : 'chevron-forward'} size={16} color={colors.textMuted} />
-              </AnimatedPressable>
-              </FadeInView>
-            );
-          })}
-        </View>
+        {CATEGORIES.map((cat) => (
+          <View key={cat.id} style={styles.categoryBlock}>
+            <Text style={styles.sectionLabel}>
+              {language === 'tr' ? cat.labelTr : cat.labelEn}
+            </Text>
+            <View style={styles.grid}>
+              {cat.items.map((id) => {
+                const item = MENU_ITEMS.find((m) => m.id === id);
+                if (!item) return null;
+                const isProItem = isProFeature(item.id);
+                // Free feature: chevron. Pro feature: closed lock when the user
+                // can't access it, open lock (in accent) once they can — the
+                // access check in handleSelect() below is unaffected either way.
+                const trailingIcon = !isProItem ? 'chevron-forward' : isPro ? 'lock-open' : 'lock-closed';
+                const trailingColor = isProItem && isPro ? colors.accent : colors.textMuted;
+                return (
+                  <FadeInView key={item.id} delay={CARD_ORDER.indexOf(item.id) * 70}>
+                  <AnimatedPressable
+                    onPress={() => handleSelect(item.id)}
+                    style={[
+                      styles.menuCard,
+                      { backgroundColor: colors.surface },
+                    ]}
+                  >
+                    {/* Uses a single calm primary tint for every category — MENU_ITEMS.color
+                        (per-category neon hue) is intentionally left unread here; the data
+                        field itself is untouched since MENU_ITEMS must not change. */}
+                    <View style={[styles.menuIconContainer, { backgroundColor: colors.primary + '18' }]}>
+                      <Ionicons name={item.icon as any} size={22} color={colors.primary} />
+                    </View>
+                    <View style={{ flex: 1 }}>
+                      <Text style={styles.menuCardTitle}>
+                        {language === 'tr' ? item.titleTr : item.titleEn}
+                      </Text>
+                      <Text style={styles.menuCardDesc}>
+                        {language === 'tr' ? item.descTr : item.descEn}
+                      </Text>
+                    </View>
+                    <Ionicons name={trailingIcon} size={16} color={trailingColor} />
+                  </AnimatedPressable>
+                  </FadeInView>
+                );
+              })}
+            </View>
+          </View>
+        ))}
       </ScrollView>
     </View>
   );
@@ -254,6 +272,17 @@ function getStyles(colors: any) {
     grid: {
       gap: spacing.sm,
     },
+    categoryBlock: {
+      marginBottom: spacing.lg,
+    },
+    sectionLabel: {
+      color: colors.textMuted,
+      fontSize: 11,
+      fontWeight: '700',
+      textTransform: 'uppercase',
+      letterSpacing: 0.6,
+      marginBottom: spacing.xs,
+    },
     menuCard: {
       borderRadius: radius.md,
       padding: spacing.md,
@@ -280,19 +309,6 @@ function getStyles(colors: any) {
       color: colors.textMuted,
       fontSize: 11,
       lineHeight: 16,
-    },
-    proBadge: {
-      flexDirection: 'row',
-      alignItems: 'center',
-      gap: 3,
-      paddingHorizontal: 6,
-      paddingVertical: 2,
-      borderRadius: 4,
-    },
-    proBadgeText: {
-      fontSize: 9,
-      fontWeight: '900',
-      letterSpacing: 0.5,
     },
     menuCardArrow: {
       position: 'absolute',

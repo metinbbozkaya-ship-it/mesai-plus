@@ -52,7 +52,7 @@ export default function FeedbackScreen() {
       }
 
       await MailComposer.composeAsync({
-        recipients: ['support@mesaiplus.app'],
+        recipients: ['metardtec@gmail.com'],
         subject: language === 'tr' ? 'Mesai+ Geri Bildirimi' : 'Mesai+ Feedback',
         body: `${feedback}\n\n---\n${settings?.firstName ?? 'User'} (${settings?.email ?? 'no-email'})`,
       });

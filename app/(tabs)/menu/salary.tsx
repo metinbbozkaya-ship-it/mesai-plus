@@ -94,6 +94,10 @@ export default function SalaryScreen() {
 
   const monthNames = language === 'tr' ? MONTHS_TR : MONTHS_EN;
 
+  const now = new Date();
+  const currentMonthLabel = monthNames[now.getMonth()];
+  const currentMonthSalary = settings?.monthlySalaries?.[MONTH_KEYS[now.getMonth()]] ?? 0;
+
   return (
     <SafeAreaView style={{ flex: 1, backgroundColor: colors.bg }} edges={['left', 'right']}>
       <PageHeader title={language === 'tr' ? 'Maaş' : 'Salary'} />
@@ -105,6 +109,21 @@ export default function SalaryScreen() {
           contentContainerStyle={styles.container}
           keyboardShouldPersistTaps="handled"
         >
+          <LinearGradient
+            colors={[colors.primary, colors.accent]}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 0 }}
+            style={styles.currentMonthHero}
+          >
+            <View>
+              <Text style={styles.currentMonthLabel}>{language === 'tr' ? 'BU AY' : 'THIS MONTH'}</Text>
+              <Text style={styles.currentMonthDate}>{currentMonthLabel} {now.getFullYear()}</Text>
+            </View>
+            <Text style={styles.currentMonthAmount}>
+              ₺{currentMonthSalary.toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+            </Text>
+          </LinearGradient>
+
           {Object.values(salaries).every((v) => !v || parseFloat(v) === 0) && (
             <View style={{ marginBottom: spacing.md }}>
               <EmptyState
@@ -181,6 +200,32 @@ function getStyles(colors: typeof import('../../../src/theme').darkColors) {
       flexGrow: 1,
       padding: spacing.md,
       paddingBottom: spacing.xl,
+    },
+    currentMonthHero: {
+      flexDirection: 'row',
+      alignItems: 'center',
+      justifyContent: 'space-between',
+      paddingVertical: spacing.sm,
+      paddingHorizontal: spacing.md,
+      borderRadius: radius.lg,
+      marginBottom: spacing.sm,
+    },
+    currentMonthLabel: {
+      color: 'rgba(255,255,255,0.8)',
+      fontSize: 10,
+      fontWeight: '700',
+      letterSpacing: 0.5,
+    },
+    currentMonthDate: {
+      color: '#FFFFFF',
+      fontSize: 14,
+      fontWeight: '700',
+      marginTop: 2,
+    },
+    currentMonthAmount: {
+      color: '#FFFFFF',
+      fontSize: 20,
+      fontWeight: '800',
     },
     headerSection: {
       alignItems: 'center',

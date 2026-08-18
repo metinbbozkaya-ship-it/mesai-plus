@@ -55,24 +55,9 @@
       "expo-router",
       "@react-native-community/datetimepicker",
       "expo-mail-composer",
-      "@react-native-google-signin/google-signin",
       "expo-web-browser",
-      "react-native-iap",
       "expo-font",
       "expo-notifications",
-      [
-        "expo-image-picker",
-        {
-          "photosPermission": "Makbuz ve belge fotoğraflarınızı seçebilmek için galerinize erişim izni gerekiyor.",
-          "cameraPermission": "Makbuz ve belgelerinizi tarayabilmek için kameranıza erişim izni gerekiyor."
-        }
-      ],
-      [
-        "expo-local-authentication",
-        {
-          "faceIDPermission": "Hesabınıza güvenli ve hızlı giriş yapabilmeniz için Face ID kullanılmasına izin verin."
-        }
-      ],
       [
         "react-native-android-widget",
         {

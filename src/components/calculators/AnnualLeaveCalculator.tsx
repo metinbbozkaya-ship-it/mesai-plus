@@ -7,7 +7,6 @@ import { useApp } from '../../context/AppContext';
 import { useToast } from '../../context/ToastContext';
 import { getColors, spacing, radius } from '../../theme';
 import AsyncStorage from '@react-native-async-storage/async-storage';
-import { LinearGradient } from 'expo-linear-gradient';
 import { buildCorporateHtml, shareCorporatePdf, makeReportNo } from '../../services/corporateReports';
 
 const LEAVE_START_DATE_KEY = 'mesai.leave.startDate.v2';
@@ -369,7 +368,7 @@ export function AnnualLeaveCalculator() {
   if (!isLoaded) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
-        <ActivityIndicator size="large" color={colors.accent} />
+        <ActivityIndicator size="large" color={colors.primary} />
       </View>
     );
   }
@@ -392,7 +391,7 @@ export function AnnualLeaveCalculator() {
           <Text style={styles.cardTitle}>{isTr ? 'İşe Başlama Tarihi' : 'Employment Start Date'}</Text>
         </View>
         <Pressable onPress={handleOpenDatePicker} style={[styles.dateButton, { borderColor: colors.border }]}>
-          <Ionicons name="calendar-outline" size={18} color={colors.accent} />
+          <Ionicons name="calendar-outline" size={18} color={colors.primary} />
           <Text style={styles.dateText}>{startDate ? formatDate(startDate) : (isTr ? 'Tarih seçin...' : 'Select date...')}</Text>
           <Ionicons name="chevron-forward" size={16} color={colors.textMuted} />
         </Pressable>
@@ -412,7 +411,7 @@ export function AnnualLeaveCalculator() {
                 <Pressable onPress={() => setShowWebDateModal(false)} style={[styles.modalBtn, { backgroundColor: colors.border }]}>
                   <Text style={{ color: colors.text, fontWeight: '600' }}>{isTr ? 'İptal' : 'Cancel'}</Text>
                 </Pressable>
-                <Pressable onPress={handleWebDateConfirm} style={[styles.modalBtn, { backgroundColor: colors.accent }]}>
+                <Pressable onPress={handleWebDateConfirm} style={[styles.modalBtn, { backgroundColor: colors.primary }]}>
                   <Text style={{ color: '#fff', fontWeight: '700' }}>{isTr ? 'Tamam' : 'OK'}</Text>
                 </Pressable>
               </View>
@@ -426,8 +425,8 @@ export function AnnualLeaveCalculator() {
           {/* Work Duration */}
           <View style={[styles.card, { backgroundColor: colors.surface }]}>
             <View style={styles.cardHeader}>
-              <View style={[styles.iconBadge, { backgroundColor: colors.accent + '20' }]}>
-                <Ionicons name="time" size={20} color={colors.accent} />
+              <View style={[styles.iconBadge, { backgroundColor: colors.primary + '20' }]}>
+                <Ionicons name="time" size={20} color={colors.primary} />
               </View>
               <Text style={styles.cardTitle}>{isTr ? 'Çalışma Süresi' : 'Employment Duration'}</Text>
             </View>
@@ -452,8 +451,8 @@ export function AnnualLeaveCalculator() {
                 <Text style={[styles.leaveBoxValue, { color: colors.primary }]}>{leaveInfo.annualLeaveDays}</Text>
                 <Text style={[styles.leaveBoxLabel, { color: colors.textMuted }]}>{isTr ? 'Toplam Hak' : 'Total'}</Text>
               </View>
-              <View style={[styles.leaveBox, { backgroundColor: colors.danger + '15', borderColor: colors.danger + '30' }]}>
-                <Text style={[styles.leaveBoxValue, { color: colors.danger }]}>{usedDays}</Text>
+              <View style={[styles.leaveBox, { backgroundColor: colors.warning + '15', borderColor: colors.warning + '30' }]}>
+                <Text style={[styles.leaveBoxValue, { color: colors.warning }]}>{usedDays}</Text>
                 <Text style={[styles.leaveBoxLabel, { color: colors.textMuted }]}>{isTr ? 'Kullanılan' : 'Used'}</Text>
               </View>
               <View style={[styles.leaveBox, { backgroundColor: colors.success + '15', borderColor: colors.success + '30' }]}>
@@ -466,8 +465,8 @@ export function AnnualLeaveCalculator() {
           {/* Calendar Card */}
           <View style={[styles.card, { backgroundColor: colors.surface }]}>
             <View style={styles.cardHeader}>
-              <View style={[styles.iconBadge, { backgroundColor: colors.accent + '20' }]}>
-                <Ionicons name="calendar-number" size={20} color={colors.accent} />
+              <View style={[styles.iconBadge, { backgroundColor: colors.primary + '20' }]}>
+                <Ionicons name="calendar-number" size={20} color={colors.primary} />
               </View>
               <Text style={styles.cardTitle}>{isTr ? 'İzin Takvimi' : 'Leave Calendar'}</Text>
             </View>
@@ -512,7 +511,7 @@ export function AnnualLeaveCalculator() {
           </View>
 
           {/* Save */}
-          <Pressable onPress={handleSave} disabled={isSaving} style={({ pressed }) => [styles.saveButton, { backgroundColor: savedFlash ? colors.success : colors.accent, opacity: isSaving ? 0.6 : pressed ? 0.8 : 1 }]}>
+          <Pressable onPress={handleSave} disabled={isSaving} style={({ pressed }) => [styles.saveButton, { backgroundColor: savedFlash ? colors.success : colors.primary, opacity: isSaving ? 0.6 : pressed ? 0.8 : 1 }]}>
             {isSaving ? <ActivityIndicator size="small" color="#fff" /> : (
               <>
                 <Ionicons name={savedFlash ? 'checkmark-circle' : 'save'} size={20} color="#fff" />
@@ -522,19 +521,15 @@ export function AnnualLeaveCalculator() {
           </Pressable>
 
           {/* PDF Buttons */}
-          <Pressable onPress={exportSummaryPdf} disabled={isExportingPdf} style={({ pressed }) => [{ opacity: pressed || isExportingPdf ? 0.7 : 1, marginTop: spacing.sm }]}>
-            <LinearGradient colors={[colors.primary, colors.accent]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.gradientBtn}>
-              {isExportingPdf ? <ActivityIndicator color="#fff" /> : (
-                <><Ionicons name="document-text" size={20} color="#fff" /><Text style={styles.gradientBtnText}>{isTr ? 'İzin Özet Raporu (PDF)' : 'Leave Summary (PDF)'}</Text></>
-              )}
-            </LinearGradient>
+          <Pressable onPress={exportSummaryPdf} disabled={isExportingPdf} style={({ pressed }) => [styles.gradientBtn, { backgroundColor: colors.primary, opacity: pressed || isExportingPdf ? 0.7 : 1, marginTop: spacing.sm }]}>
+            {isExportingPdf ? <ActivityIndicator color="#fff" /> : (
+              <><Ionicons name="document-text" size={20} color="#fff" /><Text style={styles.gradientBtnText}>{isTr ? 'İzin Özet Raporu (PDF)' : 'Leave Summary (PDF)'}</Text></>
+            )}
           </Pressable>
-          <Pressable onPress={exportDetailedLeavePdf} disabled={isExportingLeavePdf} style={({ pressed }) => [{ opacity: pressed || isExportingLeavePdf ? 0.7 : 1, marginTop: spacing.sm }]}>
-            <LinearGradient colors={[colors.accent, colors.primary]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.gradientBtn}>
-              {isExportingLeavePdf ? <ActivityIndicator color="#fff" /> : (
-                <><Ionicons name="list" size={20} color="#fff" /><Text style={styles.gradientBtnText}>{isTr ? 'İzin Detay Raporu (PDF)' : 'Leave Detail Report (PDF)'}</Text></>
-              )}
-            </LinearGradient>
+          <Pressable onPress={exportDetailedLeavePdf} disabled={isExportingLeavePdf} style={({ pressed }) => [styles.gradientBtn, { backgroundColor: colors.primary, opacity: pressed || isExportingLeavePdf ? 0.7 : 1, marginTop: spacing.sm }]}>
+            {isExportingLeavePdf ? <ActivityIndicator color="#fff" /> : (
+              <><Ionicons name="list" size={20} color="#fff" /><Text style={styles.gradientBtnText}>{isTr ? 'İzin Detay Raporu (PDF)' : 'Leave Detail Report (PDF)'}</Text></>
+            )}
           </Pressable>
 
           <View style={[styles.infoCard, { backgroundColor: colors.primary + '10', borderColor: colors.primary + '20' }]}>
@@ -611,7 +606,7 @@ export function AnnualLeaveCalculator() {
               <Pressable onPress={() => setTypeModalDate(null)} style={[styles.modalBtn, { backgroundColor: colors.border }]}>
                 <Text style={{ color: colors.text, fontWeight: '600' }}>{isTr ? 'İptal' : 'Cancel'}</Text>
               </Pressable>
-              <Pressable onPress={confirmAddLeave} style={[styles.modalBtn, { backgroundColor: colors.accent }]}>
+              <Pressable onPress={confirmAddLeave} style={[styles.modalBtn, { backgroundColor: colors.primary }]}>
                 <Text style={{ color: '#fff', fontWeight: '700' }}>{typeModalEditMode ? (isTr ? 'Güncelle' : 'Update') : (isTr ? 'Ekle' : 'Add')}</Text>
               </Pressable>
             </View>
@@ -646,7 +641,7 @@ function getStyles(colors: any) {
     dateText: { flex: 1, color: colors.text, fontSize: 14, fontWeight: '500' },
     durationRow: { flexDirection: 'row', justifyContent: 'space-around' },
     durationItem: { alignItems: 'center', gap: 4 },
-    durationValue: { color: colors.accent, fontSize: 32, fontWeight: '800' },
+    durationValue: { color: colors.primary, fontSize: 32, fontWeight: '800' },
     durationLabel: { color: colors.textMuted, fontSize: 12, fontWeight: '600' },
     lawDescription: { fontSize: 13, lineHeight: 18, marginBottom: spacing.md },
     leaveGrid: { flexDirection: 'row', gap: spacing.sm },
@@ -683,6 +678,6 @@ function getStyles(colors: any) {
     typeRow: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.md, borderRadius: radius.md, borderWidth: 1 },
     actionBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: spacing.sm, paddingVertical: spacing.md, borderRadius: radius.md, borderWidth: 1 },
     toastWrap: { position: 'absolute', bottom: spacing.xl, left: 0, right: 0, alignItems: 'center', zIndex: 9999 },
-    toast: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.md, borderRadius: radius.full, borderWidth: 1, shadowColor: '#000', shadowOpacity: 0.3, shadowRadius: 8, shadowOffset: { width: 0, height: 4 }, elevation: 6 },
+    toast: { flexDirection: 'row', alignItems: 'center', gap: spacing.sm, paddingVertical: spacing.sm + 2, paddingHorizontal: spacing.md, borderRadius: radius.full, borderWidth: 1, shadowColor: '#000', shadowOpacity: 0.2, shadowRadius: 6, shadowOffset: { width: 0, height: 4 }, elevation: 5 },
   });
 }

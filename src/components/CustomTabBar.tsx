@@ -2,6 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { View, Text, Pressable, StyleSheet, Animated, Platform, LayoutChangeEvent } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
+import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import type { BottomTabBarProps } from '@react-navigation/bottom-tabs';
@@ -122,6 +123,30 @@ export function CustomTabBar({ state, descriptors, navigation }: BottomTabBarPro
             }
           };
 
+          const isCenter = route.name === 'entry';
+
+          if (isCenter) {
+            return (
+              <Pressable
+                key={route.key}
+                onPress={onPress}
+                style={({ pressed }) => [styles.tab, { transform: [{ scale: pressed ? 0.94 : 1 }] }]}
+                accessibilityRole="button"
+                accessibilityLabel={label}
+                accessibilityState={focused ? { selected: true } : {}}
+              >
+                <LinearGradient
+                  colors={[colors.primary, colors.accent]}
+                  start={{ x: 0, y: 0 }}
+                  end={{ x: 1, y: 1 }}
+                  style={[styles.centerBtn, { shadowColor: colors.primary }]}
+                >
+                  <Ionicons name="add" size={26} color="#fff" />
+                </LinearGradient>
+              </Pressable>
+            );
+          }
+
           const color = focused ? colors.accent : colors.textMuted;
           const icon = options.tabBarIcon?.({ focused, color, size: 22 });
 
@@ -190,6 +215,17 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: 2,
+  },
+  centerBtn: {
+    width: 46,
+    height: 46,
+    borderRadius: 23,
+    justifyContent: 'center',
+    alignItems: 'center',
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    shadowOffset: { width: 0, height: 4 },
+    elevation: 6,
   },
   label: {
     fontSize: 10,

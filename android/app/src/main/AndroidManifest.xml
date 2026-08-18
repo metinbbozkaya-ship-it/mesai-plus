@@ -1,15 +1,20 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" xmlns:tools="http://schemas.android.com/tools">
-  <uses-permission android:name="android.permission.CAMERA"/>
   <uses-permission android:name="android.permission.INTERNET"/>
-  <uses-permission android:name="android.permission.MODIFY_AUDIO_SETTINGS"/>
-  <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-  <uses-permission android:name="android.permission.RECORD_AUDIO"/>
-  <uses-permission android:name="android.permission.SYSTEM_ALERT_WINDOW"/>
-  <uses-permission android:name="android.permission.USE_BIOMETRIC"/>
-  <uses-permission android:name="android.permission.USE_FINGERPRINT"/>
   <uses-permission android:name="android.permission.VIBRATE"/>
-  <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"/>
   <uses-permission android:name="com.android.vending.BILLING"/>
+  <!-- expo-camera is an unused dependency (0 code usage) whose own AAR
+       manifest declares CAMERA + RECORD_AUDIO; explicitly excluded here so
+       neither appears in the merged release manifest without removing the
+       package itself. -->
+  <uses-permission android:name="android.permission.CAMERA" tools:node="remove"/>
+  <uses-permission android:name="android.permission.RECORD_AUDIO" tools:node="remove"/>
+  <!-- @react-native-google-signin/google-signin is an unused dependency (0
+       code usage) whose own AAR manifest declares USE_BIOMETRIC /
+       USE_FINGERPRINT; no biometric API is called anywhere in this app
+       (confirmed removed in an earlier pass), so both are safe to exclude
+       from the merged release manifest without removing the package. -->
+  <uses-permission android:name="android.permission.USE_BIOMETRIC" tools:node="remove"/>
+  <uses-permission android:name="android.permission.USE_FINGERPRINT" tools:node="remove"/>
   <queries>
     <intent>
       <action android:name="android.intent.action.VIEW"/>

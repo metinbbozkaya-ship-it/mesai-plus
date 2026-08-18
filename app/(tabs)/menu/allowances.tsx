@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Switch } from 'react-native';
+import { View, Text, StyleSheet, ScrollView, Pressable, TextInput, Switch, KeyboardAvoidingView, Platform } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LinearGradient } from 'expo-linear-gradient';
 import { Ionicons } from '@expo/vector-icons';
@@ -80,6 +80,7 @@ export default function AllowancesScreen() {
         <Text style={[styles.headerTitle, { color: colors.text }]}>{isTr ? 'Yol / Yemek Ücreti' : 'Transport / Meal'}</Text>
         <View style={{ width: 40 }} />
       </View>
+      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
       <ScrollView contentContainerStyle={{ padding: spacing.md, paddingBottom: 120 }}>
         <LinearGradient colors={[colors.primary, colors.accent]} start={{ x: 0, y: 0 }} end={{ x: 1, y: 1 }} style={styles.hero}>
           <Text style={styles.heroLabel}>{isTr ? 'Bu Ay Tahmini' : 'This Month Estimate'}</Text>
@@ -121,6 +122,7 @@ export default function AllowancesScreen() {
           <Row label={isTr ? 'Aylık tahmini' : 'Monthly estimate'} value={`₺${monthlyEstimate.toFixed(2)}`} colors={colors} bold />
         </View>
       </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
