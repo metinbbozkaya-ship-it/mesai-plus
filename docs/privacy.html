@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mesai+ Gizlilik Politikası / Privacy Policy</title>
+<meta name="description" content="Mesai+ mobil uygulaması Gizlilik Politikası. Verileriniz cihazınızda saklanır, geliştiricinin kendi sunucusu yoktur.">
+<link rel="icon" type="image/png" href="assets/favicon.png">
+<style>
+  :root {
+    --bg: #F8FAFC;
+    --surface: #FFFFFF;
+    --border: rgba(100,116,139,0.24);
+    --text: #0F172A;
+    --text-muted: #475569;
+    --primary: #1D4ED8;
+    --primary-dark: #1E3A8A;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrap {
+    max-width: 760px;
+    margin: 0 auto;
+    padding: 0 20px 80px;
+  }
+  header.top {
+    padding: 28px 0 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+    border-bottom: 1px solid var(--border);
+    margin-bottom: 8px;
+  }
+  .brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .brand-mark {
+    width: 40px;
+    height: 40px;
+    border-radius: 10px;
+    flex-shrink: 0;
+    display: block;
+  }
+  .brand-name {
+    font-size: 20px;
+    font-weight: 800;
+    letter-spacing: 0.2px;
+  }
+  .brand-name .plus { color: var(--primary); }
+  nav.nav { display: flex; gap: 4px; flex-wrap: wrap; }
+  nav.nav a {
+    color: var(--text-muted); text-decoration: none; font-weight: 700; font-size: 14px;
+    padding: 8px 12px; border-radius: 8px;
+  }
+  nav.nav a:hover { background: var(--surface); color: var(--primary); }
+
+  h1.page-title {
+    font-size: 26px;
+    font-weight: 800;
+    margin: 32px 0 4px;
+    color: var(--primary-dark);
+  }
+  .updated {
+    font-size: 13px;
+    color: var(--text-muted);
+  }
+  .lang-switch {
+    margin-top: 16px;
+    font-size: 14px;
+  }
+  .lang-switch a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 700;
+    padding: 6px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    display: inline-block;
+  }
+  .lang-switch a + a { margin-left: 8px; }
+  .lang-switch a:hover { background: var(--surface); }
+
+  section.lang-block { margin-bottom: 8px; }
+  section.lang-block > h2.section-heading {
+    font-size: 20px;
+    font-weight: 800;
+    margin: 40px 0 4px;
+    padding-top: 8px;
+    color: var(--text);
+  }
+  .lead {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin-bottom: 28px;
+  }
+
+  article.card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 18px 20px;
+    margin-bottom: 14px;
+  }
+  article.card h3 {
+    font-size: 15px;
+    font-weight: 800;
+    margin: 0 0 8px;
+    color: var(--text);
+  }
+  article.card p {
+    font-size: 14px;
+    color: var(--text-muted);
+    margin: 0 0 8px;
+  }
+  article.card p:last-child { margin-bottom: 0; }
+  article.card ul {
+    margin: 0 0 8px;
+    padding-left: 20px;
+    font-size: 14px;
+    color: var(--text-muted);
+  }
+  article.card li { margin-bottom: 4px; }
+  article.card a {
+    color: var(--primary);
+    text-decoration: none;
+    font-weight: 700;
+  }
+  article.card a:hover { text-decoration: underline; }
+
+  .contact-block {
+    background: var(--primary-dark);
+    color: #fff;
+    border-radius: 12px;
+    padding: 22px 24px;
+    margin-top: 24px;
+    text-align: center;
+  }
+  .contact-block .dev-name {
+    font-size: 18px;
+    font-weight: 800;
+    margin-bottom: 4px;
+  }
+  .contact-block a {
+    color: #fff;
+    font-weight: 700;
+    text-decoration: underline;
+  }
+
+  footer.bottom {
+    margin-top: 48px;
+    padding-top: 20px;
+    border-top: 1px solid var(--border);
+    font-size: 12px;
+    color: var(--text-muted);
+    text-align: center;
+  }
+  footer.bottom a { color: var(--primary); text-decoration: none; font-weight: 700; }
+
+  @media (max-width: 480px) {
+    .wrap { padding: 0 16px 60px; }
+    header.top { padding: 24px 0 20px; }
+    h1.page-title { font-size: 22px; }
+    section.lang-block > h2.section-heading { font-size: 18px; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="top">
+    <div class="brand">
+      <img src="assets/logo.png" alt="Mesai+ logo" class="brand-mark">
+      <div class="brand-name">Mesai<span class="plus">+</span></div>
+    </div>
+    <nav class="nav">
+      <a href="index.html">Ana Sayfa</a>
+      <a href="support.html">Destek</a>
+      <a href="privacy.html">Gizlilik</a>
+      <a href="terms.html">Koşullar</a>
+    </nav>
+  </header>
+
+  <h1 class="page-title">Gizlilik Politikası / Privacy Policy</h1>
+  <div class="updated">Son Güncelleme / Last Updated: 18 Ağustos 2026 · August 18, 2026</div>
+  <div class="lang-switch">
+    <a href="#tr">Türkçe</a><a href="#en">English</a>
+  </div>
+
+  <!-- ============================================================ -->
+  <!-- TÜRKÇE -->
+  <!-- ============================================================ -->
+  <section class="lang-block" id="tr" lang="tr">
+    <h2 class="section-heading">Mesai+ Gizlilik Politikası</h2>
+    <p class="lead">Bu sayfa, Mesai+ mobil uygulamasının kişisel verilerinizi nasıl işlediğini açıklar. Uygulamayı kullanarak bu politikayı kabul etmiş olursunuz.</p>
+
+    <article class="card">
+      <h3>1. Uygulama Hakkında</h3>
+      <p>Mesai+; çalışma/mesai kayıtlarınızı tutmanızı, kazanç ve maaş hesaplamanızı, ödeme ve borç takibinizi, harcamalarınızı ve birikim hedeflerinizi yönetmenizi, altın/döviz/gümüş ve diğer varlık kayıtlarınızı tutmanızı, yıllık izninizi takip etmenizi, çalışma hayatına ilişkin hesaplama araçlarını (kıdem, ihbar, SGK, asgari ücret vb.) kullanmanızı ve raporlarınızı (PDF/Excel) oluşturup yedeklemenizi sağlayan bir kişisel verimlilik ve finans uygulamasıdır.</p>
+    </article>
+
+    <article class="card">
+      <h3>2. Hangi Verileri Saklıyoruz</h3>
+      <p>Uygulama, kullanımınız sırasında aşağıdaki bilgileri saklar:</p>
+      <ul>
+        <li>Ad, soyad ve e-posta adresiniz</li>
+        <li>Aylık maaş bilgileriniz ve haftalık çalışma saatiniz</li>
+        <li>Mesai/çalışma kayıtlarınız ve hesaplanan kazançlarınız</li>
+        <li>İş yeri kayıtlarınız</li>
+        <li>Cüzdan verileriniz: sabit ödemeler, borç/taksit kayıtları, harcamalar, birikim hedefleri, altın/döviz/gümüş ve diğer varlık alım kayıtları, alacak ve avans kayıtları</li>
+        <li>Yıllık izin bilgileriniz</li>
+        <li>Dil ve tema tercihleriniz</li>
+        <li>Pro üyelik durumunuz</li>
+      </ul>
+    </article>
+
+    <article class="card">
+      <h3>3. Verileriniz Cihazınızda Saklanır</h3>
+      <p>Yukarıda sayılan tüm veriler, uygulama tarafından yalnızca <strong>cihazınızın yerel depolama alanında</strong> tutulur. Mesai+'ın bu verileri topladığı kendi bir sunucusu/veritabanı yoktur; verileriniz geliştiriciye ait uzak bir backend'e otomatik olarak gönderilmez.</p>
+      <p>Bununla birlikte, cihazınızın işletim sistemi veya kullandığınız diğer uygulama/servisler seviyesinde oluşabilecek davranışlar (örneğin siz açıkça bir yedek dosyasını paylaşmayı seçtiğinizde hangi hizmete gönderileceği) Mesai+'ın doğrudan kontrolünde değildir; bu nedenle verilerin "hiçbir koşulda" cihazdan çıkmayacağı gibi mutlak bir garanti vermiyoruz — yalnızca uygulamanın kendisinin otomatik bir aktarım yapmadığını beyan ediyoruz.</p>
+    </article>
+
+    <article class="card">
+      <h3>4. E-posta Adresinizin Kullanımı</h3>
+      <p>Profilinizde girdiğiniz e-posta adresi; uygulama içi kişiselleştirme, raporlarınızın/yedeklerinizin sahipliğini belirlemek ve yedek dosyalarını doğrulamak amacıyla yalnızca cihazınızda yerel olarak kullanılır. Bu e-posta adresiyle Mesai+ sunucusunda bir hesap açılmaz ve bu adrese Mesai+ tarafından otomatik bir e-posta gönderilmez.</p>
+    </article>
+
+    <article class="card">
+      <h3>5. Kullanıcı Hesabı Sistemi</h3>
+      <p>Mesai+, METARD tarafından işletilen uzak bir kullanıcı hesabı oluşturmaz. Bu nedenle kullanıcı adı/parola ile giriş yapılan bir Mesai+ bulut hesabı yoktur. Apple veya Google mağaza hesabınız üzerinden gerçekleştirdiğiniz satın alma işlemleri, bu durumdan bağımsızdır ve ilgili mağazanın kendi hesap sistemi kapsamında yürütülür.</p>
+    </article>
+
+    <article class="card">
+      <h3>6. Pro Üyelik Satın Alma</h3>
+      <p>Mesai+ Pro satın alma işlemleri; Android cihazlarda <strong>Google Play</strong>, iOS cihazlarda <strong>Apple App Store</strong> satın alma altyapısı üzerinden yürütülür. Mesai+, kredi kartı numaranızı, banka kartı numaranızı veya ödeme kartı güvenlik bilgilerinizi doğrudan almaz veya saklamaz; bu bilgiler yalnızca ilgili mağaza platformu tarafından işlenir.</p>
+    </article>
+
+    <article class="card">
+      <h3>7. Kullanılan Platform ve Altyapı Servisleri</h3>
+      <p>Uygulama; satın alma işlemleri için Apple App Store (StoreKit) / Google Play Billing altyapısını, temel uygulama çatısı için Expo/React Native altyapısını kullanır. Uygulama içinde <strong>reklam veya analiz (analytics) amaçlı üçüncü taraf bir yazılım geliştirme kiti (SDK) kullanılmamaktadır</strong>. Kamera, mikrofon, biyometrik kimlik doğrulama veya Google ile Giriş Yap gibi özellikler uygulamada aktif olarak kullanılmamaktadır.</p>
+    </article>
+
+    <article class="card">
+      <h3>8. Verilerinizi Paylaşmıyoruz</h3>
+      <p>Mesai+ geliştiricisi, cihazınızda yerel olarak tuttuğunuz çalışma ve finans kayıtlarınızı reklam şirketleriyle satmaz, pazarlama amacıyla üçüncü taraflarla paylaşmaz veya kendi bir sunucusuna otomatik olarak yüklemez. Apple ve Google'ın, mağaza üzerinden gerçekleştirdiğiniz satın alma işlemlerini kendi gizlilik politikaları çerçevesinde işlemesi, Mesai+'ın yerel verilerinizin işlenmesinden ayrı ve bağımsız bir süreçtir.</p>
+    </article>
+
+    <article class="card">
+      <h3>9. Yedekleme ve Dışa Aktarma</h3>
+      <p>Uygulama içindeki "Yedeği Dışa Aktar" özelliğini kullanarak verilerinizi bir dosyaya kaydedebilirsiniz. Bu dosya cihazınızda oluşturulur. Dosyayı paylaşmayı seçerseniz, dosyanın nereye gönderileceği tamamen sizin seçiminize bağlıdır (örneğin cihazınızdaki bulut depolama, dosya yönetimi veya e-posta uygulamalarından biri) — bu, Mesai+'ın otomatik bir veri toplama veya aktarma işlemi değildir.</p>
+    </article>
+
+    <article class="card">
+      <h3>10. Verilerinizi Silme</h3>
+      <p>Uygulama menüsündeki <strong>"Tüm Verileri Sıfırla"</strong> seçeneğini kullanarak; profiliniz, maaş bilgileriniz, mesai kayıtlarınız, yıllık izin bilgileriniz, iş yeri ve ayar verileriniz, cüzdan verileriniz (sabit ödemeler, borçlar, harcamalar, birikim hedefleri, varlık kayıtları, alacaklar, avanslar) dahil olmak üzere yerel kullanıcı verilerinizi cihazınızdan silebilirsiniz.</p>
+      <p>Dil ve tema tercihleriniz, bu sıfırlama işleminden etkilenmez ve korunur. Pro satın alma hakkınız yerel verilerin silinmesiyle iptal olmaz; satın alma hakkınız ilgili Apple/Google mağaza hesabınıza bağlıdır ve mağazanın kendi altyapısı tarafından yönetilir.</p>
+      <p>Ayrıca uygulamayı cihazınızdan kaldırmanız da yerel verilerinizin cihazdan kaldırılmasına neden olabilir; bu davranış cihazınızın işletim sistemine ve ayarlarına göre değişebilir.</p>
+    </article>
+
+    <article class="card">
+      <h3>11. Veri Saklama Süresi</h3>
+      <p>Mesai+'ın verilerinizi belirli bir süre sakladığı kendi bir sunucusu bulunmadığından, sabit bir saklama süresi beyan etmiyoruz. Yerel verileriniz; siz onları silene, "Tüm Verileri Sıfırla" seçeneğini kullanana veya uygulamayı/cihazı kaldırana kadar cihazınızda kalabilir.</p>
+    </article>
+
+    <article class="card">
+      <h3>12. Güvenlik Yaklaşımımız</h3>
+      <p>Mesai+, kişisel çalışma ve finans kayıtlarınızı geliştirici backend'ine otomatik olarak aktarmayarak bir veri minimizasyonu yaklaşımı benimser — yani veri, olabildiğince yalnızca cihazınızda kalır. "%100 güvenli" veya "askeri düzeyde şifreleme" gibi kanıtlanamayan iddialarda bulunmuyoruz.</p>
+    </article>
+
+    <article class="card">
+      <h3>13. Çocukların Gizliliği</h3>
+      <p>Mesai+, çocuklara yönelik tasarlanmış bir uygulama değildir ve bilerek çocuklardan kişisel veri toplamaz.</p>
+    </article>
+
+    <article class="card">
+      <h3>14. Politika Değişiklikleri</h3>
+      <p>Bu gizlilik politikası zaman zaman güncellenebilir. Yapılan değişiklikler bu sayfada yayınlanır ve sayfanın üst kısmındaki "Son Güncelleme" tarihi buna göre değiştirilir.</p>
+    </article>
+
+    <div class="contact-block">
+      <div class="dev-name">METARD</div>
+      <div>Sorularınız için: <a href="mailto:metardtec@gmail.com">metardtec@gmail.com</a></div>
+    </div>
+  </section>
+
+  <!-- ============================================================ -->
+  <!-- ENGLISH -->
+  <!-- ============================================================ -->
+  <section class="lang-block" id="en" lang="en">
+    <h2 class="section-heading">Mesai+ Privacy Policy</h2>
+    <p class="lead">This page explains how the Mesai+ mobile app handles your personal data. By using the app, you agree to this policy.</p>
+
+    <article class="card">
+      <h3>1. About the App</h3>
+      <p>Mesai+ is a personal productivity and finance app that lets you keep work/overtime records, calculate earnings and salary, track payments and debts, manage expenses and savings goals, keep records of gold/currency/silver and other assets, track annual leave, use work-life calculation tools (severance, notice, social security, minimum wage, etc.), and generate and back up reports (PDF/Excel).</p>
+    </article>
+
+    <article class="card">
+      <h3>2. Data We Store</h3>
+      <p>During your use of the app, it stores the following information:</p>
+      <ul>
+        <li>Your first name, last name, and email address</li>
+        <li>Your monthly salary information and weekly working hours</li>
+        <li>Your work/overtime records and calculated earnings</li>
+        <li>Your workplace records</li>
+        <li>Your wallet data: bills, debt/installment records, expenses, savings goals, gold/currency/silver and other asset purchase records, receivables and advances</li>
+        <li>Your annual leave information</li>
+        <li>Your language and theme preferences</li>
+        <li>Your Pro membership status</li>
+      </ul>
+    </article>
+
+    <article class="card">
+      <h3>3. Your Data Is Stored On Your Device</h3>
+      <p>All of the data listed above is stored by the app <strong>only in your device's local storage</strong>. Mesai+ does not operate a server or database that collects this data; your data is not automatically sent to a remote backend belonging to the developer.</p>
+      <p>That said, behavior that may occur at the level of your device's operating system or other apps/services you use (for example, where a backup file goes if you explicitly choose to share it) is outside Mesai+'s direct control; for that reason we do not make an absolute claim that data "never" leaves the device under any circumstance — we state only that the app itself does not perform any automatic transfer.</p>
+    </article>
+
+    <article class="card">
+      <h3>4. Use of Your Email Address</h3>
+      <p>The email address you enter in your profile is used only locally on your device, for in-app personalization, to identify ownership of your reports/backups, and to validate backup files. No account is created on a Mesai+ server with this email address, and Mesai+ does not send any automated email to it.</p>
+    </article>
+
+    <article class="card">
+      <h3>5. User Account System</h3>
+      <p>Mesai+ does not create a remote user account operated by METARD. There is therefore no Mesai+ cloud account that you log into with a username/password. Purchases you make through your Apple or Google store account are separate from this and are handled entirely within that store's own account system.</p>
+    </article>
+
+    <article class="card">
+      <h3>6. Pro Membership Purchases</h3>
+      <p>Mesai+ Pro purchases are processed through <strong>Google Play</strong> billing on Android and <strong>Apple App Store</strong> billing (StoreKit) on iOS. Mesai+ does not directly collect or store your credit card number, debit card number, or payment card security details; this information is handled solely by the respective store platform.</p>
+    </article>
+
+    <article class="card">
+      <h3>7. Platform and Infrastructure Services Used</h3>
+      <p>The app uses Apple App Store (StoreKit) / Google Play Billing infrastructure for purchases, and the Expo/React Native framework as its core technology. The app does <strong>not</strong> use any third-party advertising or analytics SDK. Features such as camera, microphone, biometric authentication, or Sign in with Google are not actively used in the app.</p>
+    </article>
+
+    <article class="card">
+      <h3>8. We Do Not Share Your Data</h3>
+      <p>The Mesai+ developer does not sell your locally stored work and financial records to advertising companies, does not share them with third parties for marketing purposes, and does not automatically upload them to any server it operates. Apple's and Google's processing of your in-store purchases under their own privacy policies is a separate process, independent of how Mesai+ handles your local data.</p>
+    </article>
+
+    <article class="card">
+      <h3>9. Backup and Export</h3>
+      <p>You can save your data to a file using the "Export Backup" feature in the app. This file is created on your device. If you choose to share it, where it is sent is entirely up to your own choice (for example, a cloud storage, file management, or email app on your device) — this is not an automatic data collection or transfer performed by Mesai+.</p>
+    </article>
+
+    <article class="card">
+      <h3>10. Deleting Your Data</h3>
+      <p>You can delete your local user data — including your profile, salary information, work records, annual leave information, workplace and settings data, and wallet data (bills, debts, expenses, savings goals, asset records, receivables, and advances) — from your device using the <strong>"Reset All Data"</strong> option in the app menu.</p>
+      <p>Your language and theme preferences are not affected by this reset and are preserved. Your Pro purchase entitlement is not cancelled by deleting local data; your entitlement is tied to your Apple/Google store account and is managed by that store's own infrastructure.</p>
+      <p>Uninstalling the app may also remove your local data from your device; this behavior can vary depending on your device's operating system and settings.</p>
+    </article>
+
+    <article class="card">
+      <h3>11. Data Retention</h3>
+      <p>Since Mesai+ does not operate a server that retains your data for a fixed period, we do not state a specific retention period. Your local data may remain on your device until you delete it, use the "Reset All Data" option, or uninstall the app/device is reset.</p>
+    </article>
+
+    <article class="card">
+      <h3>12. Our Approach to Security</h3>
+      <p>Mesai+ follows a data-minimization approach by not automatically transferring your personal work and financial records to a developer backend — your data stays on your device as much as possible. We do not make unverifiable claims such as "100% secure" or "military-grade encryption."</p>
+    </article>
+
+    <article class="card">
+      <h3>13. Children's Privacy</h3>
+      <p>Mesai+ is not designed for children and does not knowingly collect personal data from children.</p>
+    </article>
+
+    <article class="card">
+      <h3>14. Changes to This Policy</h3>
+      <p>This privacy policy may be updated from time to time. Changes will be posted on this page, and the "Last Updated" date at the top of the page will be revised accordingly.</p>
+    </article>
+
+    <div class="contact-block">
+      <div class="dev-name">METARD</div>
+      <div>For questions: <a href="mailto:metardtec@gmail.com">metardtec@gmail.com</a></div>
+    </div>
+  </section>
+
+  <footer class="bottom">
+    <a href="index.html">Mesai+</a> &middot; METARD &middot; <a href="mailto:metardtec@gmail.com">metardtec@gmail.com</a>
+  </footer>
+
+</div>
+</body>
+</html>
